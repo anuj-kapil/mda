@@ -64,19 +64,24 @@ A<-matrix(c(2,-1,0,-1,2,-1,0,-1,2),nrow=3,byrow=TRUE)
 
 # A inverse
 A1<-solve(A)
+# Floating point issue
+round(A%*%A1)
 
 
+options(scipen = 999)
 B<-eigen(A)
 B$values
 B$vectors
 
 P<-B$vectors
 D<-B$values*diag(3)
-P1<-solve(P)
+Pt<-t(P)
 
-P*D*P1
+round(P%*%D%*%Pt)
 
-P*P1
+round(P%*%P1)
+
+round(P1%*%P)
 
 A
 boston <- read.table("C:/Documents/boston.txt", sep = "") colnames(boston) <-
