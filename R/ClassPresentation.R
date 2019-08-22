@@ -7,15 +7,19 @@ library(ggcorrplot)
 library(car)
 
 kc_houses<-fread('Data/kc_house_data.csv')
+
+# Rows and columns
+dim(kc_houses)
 head(kc_houses)
+
+# No missing values
 summary(kc_houses)
+
+# Convert Dates
 kc_houses$date<-as.IDate(kc_houses$date, format = "%m/%d/%Y")
-?as.IDate()
+summary(kc_houses)
 
-?tableau_color_pal()
-
-#
-?seq_along
+# Univariate model
 ggplot(kc_houses, aes(x=seq_along(id), y=price))+
   geom_point(col = "#1f83b4")+
   geom_hline(aes(yintercept = mean(kc_houses$price,na.rm = T)), col = "#ff7f0e")+ 
@@ -23,8 +27,11 @@ ggplot(kc_houses, aes(x=seq_along(id), y=price))+
   labs(x="Id", y="Price")+
   theme(panel.background = element_blank(), axis.line = element_line(colour = "grey"), plot.title = element_text(hjust = 0.5))
 
-
-?geom_hline
+kc_houses[,err:=price-mean(price,na.rm = T)]
+kc_houses[,err_sq:=err^2]
+sse <- sum(kc_houses$err_sq)
+options(scipen = 999)
+sse
 
 ggplot(kc_houses, aes(x=price)) + geom_density()
 
@@ -40,10 +47,6 @@ ggcorrplot(corr, hc.order = FALSE, type = "lower",
            colors = c("#ff7f0e", "white", "#1f83b4"),
            lab = TRUE)+
            theme(panel.grid.major=element_blank())
-?ggcorrplot
-  
-  ?scale_color_tableau()
-theme_gdocs()
 
 # Scatter Plot
 theme_blank<- theme(axis.line=element_blank(),axis.text.x=element_blank(),
@@ -225,19 +228,7 @@ kc_houses[,.N*100/nrow(kc_houses),by=is_training]
 kc_houses_train <- kc_houses[is_training==T]
 kc_houses_test <- kc_houses[is_training==F]
 
-#univariate
-kc_house_prices <-kc_houses_train[,list(price)]
 
-kc_house_prices[,sd:=price-mean(price,na.rm = T)]
-kc_house_prices[,sd_sq:=sd^2]
-sse <- sum(kc_house_prices$sd_sq)
-options(scipen = 999)
-names(kc_houses)
-cor_mat <- kc_houses_train[,list(price,sqft_living, grade)]
-cor_mat <- kc_houses_train[,3:21]
-ncol(kc_houses_train)
-cor(cor_mat, use = "pairwise.complete.obs")
-summary(kc_houses_train)
 #bivariate
 
 ?exp
