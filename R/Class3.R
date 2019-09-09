@@ -27,6 +27,7 @@ for (i in 1:9) {
   qqnorm(wine[, i], sub = colnames(wine)[i])
 }
 
+qqnorm(wine[, 3], sub = colnames(wine)[3])
 
 apply(wine,2,function(x) ks.test(scale(x), y=pnorm))
 ?pnorm()

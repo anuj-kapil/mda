@@ -1,0 +1,1004 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Multivariate Data Analysis - Presentation},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Multivariate Data Analysis - Presentation}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{}
+    \preauthor{}\postauthor{}
+    \date{}
+    \predate{}\postdate{}
+  
+
+\begin{document}
+\maketitle
+
+\hypertarget{multivariate-data-analysis-spring-2019-37459-2019-spring-city}{%
+\subsection{Multivariate Data Analysis Spring 2019
+(37459-2019-SPRING-CITY)}\label{multivariate-data-analysis-spring-2019-37459-2019-spring-city}}
+
+\hypertarget{assignment-presentation}{%
+\subsubsection{Assignment: Presentation}\label{assignment-presentation}}
+
+\hypertarget{student-name-anuj-kapil}{%
+\subsubsection{Student Name: Anuj Kapil}\label{student-name-anuj-kapil}}
+
+\hypertarget{student-id-12678708}{%
+\subsubsection{Student Id: 12678708}\label{student-id-12678708}}
+
+\hypertarget{step-1-download-the-dataset-from-kaggle}{%
+\subsection{Step 1: Download the dataset from
+Kaggle}\label{step-1-download-the-dataset-from-kaggle}}
+
+To simplify the process, I am using my github account to host the
+dataset but the original dataset is available here:
+\href{https://www.kaggle.com/harlfoxem/housesalesprediction}{Kaggle:
+House Sales in King County}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{wd <-}\StringTok{ }\KeywordTok{getwd}\NormalTok{()}
+\NormalTok{filep <-}\StringTok{ "https://raw.githubusercontent.com/anuj-kapil/mda/master/Data/kc_house_data.csv"}
+\NormalTok{filename <-}\StringTok{ "kc_house_data.csv"}
+\KeywordTok{download.file}\NormalTok{(}\DataTypeTok{url=}\NormalTok{filep, }\DataTypeTok{destfile=}\NormalTok{filename)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{step-2-read-the-downloaded-file-to-memory}{%
+\subsection{Step 2: Read the downloaded file to
+memory}\label{step-2-read-the-downloaded-file-to-memory}}
+
+We are using the data.table package from R to read the file in to memory
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{kc_houses<-}\KeywordTok{fread}\NormalTok{(}\StringTok{'kc_house_data.csv'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{step-3-exploratory-analysis}{%
+\subsection{Step 3: Exploratory
+Analysis}\label{step-3-exploratory-analysis}}
+
+Let's have a look at the number of features and observations in the
+dataset
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Rows and columns}
+\KeywordTok{dim}\NormalTok{(kc_houses)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 21597    21
+\end{verbatim}
+
+Quick look at the data types and ranges of data. Below summary shows
+that there are no null or missing values
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# No missing values}
+\KeywordTok{summary}\NormalTok{(kc_houses)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##        id                 date               price        
+##  Min.   :   1000102   Length:21597       Min.   :  78000  
+##  1st Qu.:2123049175   Class :character   1st Qu.: 322000  
+##  Median :3904930410   Mode  :character   Median : 450000  
+##  Mean   :4580474287                      Mean   : 540297  
+##  3rd Qu.:7308900490                      3rd Qu.: 645000  
+##  Max.   :9900000190                      Max.   :7700000  
+##     bedrooms        bathrooms      sqft_living       sqft_lot      
+##  Min.   : 1.000   Min.   :0.500   Min.   :  370   Min.   :    520  
+##  1st Qu.: 3.000   1st Qu.:1.750   1st Qu.: 1430   1st Qu.:   5040  
+##  Median : 3.000   Median :2.250   Median : 1910   Median :   7618  
+##  Mean   : 3.373   Mean   :2.116   Mean   : 2080   Mean   :  15099  
+##  3rd Qu.: 4.000   3rd Qu.:2.500   3rd Qu.: 2550   3rd Qu.:  10685  
+##  Max.   :33.000   Max.   :8.000   Max.   :13540   Max.   :1651359  
+##      floors        waterfront            view          condition   
+##  Min.   :1.000   Min.   :0.000000   Min.   :0.0000   Min.   :1.00  
+##  1st Qu.:1.000   1st Qu.:0.000000   1st Qu.:0.0000   1st Qu.:3.00  
+##  Median :1.500   Median :0.000000   Median :0.0000   Median :3.00  
+##  Mean   :1.494   Mean   :0.007547   Mean   :0.2343   Mean   :3.41  
+##  3rd Qu.:2.000   3rd Qu.:0.000000   3rd Qu.:0.0000   3rd Qu.:4.00  
+##  Max.   :3.500   Max.   :1.000000   Max.   :4.0000   Max.   :5.00  
+##      grade          sqft_above   sqft_basement       yr_built   
+##  Min.   : 3.000   Min.   : 370   Min.   :   0.0   Min.   :1900  
+##  1st Qu.: 7.000   1st Qu.:1190   1st Qu.:   0.0   1st Qu.:1951  
+##  Median : 7.000   Median :1560   Median :   0.0   Median :1975  
+##  Mean   : 7.658   Mean   :1789   Mean   : 291.7   Mean   :1971  
+##  3rd Qu.: 8.000   3rd Qu.:2210   3rd Qu.: 560.0   3rd Qu.:1997  
+##  Max.   :13.000   Max.   :9410   Max.   :4820.0   Max.   :2015  
+##   yr_renovated        zipcode           lat             long       
+##  Min.   :   0.00   Min.   :98001   Min.   :47.16   Min.   :-122.5  
+##  1st Qu.:   0.00   1st Qu.:98033   1st Qu.:47.47   1st Qu.:-122.3  
+##  Median :   0.00   Median :98065   Median :47.57   Median :-122.2  
+##  Mean   :  84.46   Mean   :98078   Mean   :47.56   Mean   :-122.2  
+##  3rd Qu.:   0.00   3rd Qu.:98118   3rd Qu.:47.68   3rd Qu.:-122.1  
+##  Max.   :2015.00   Max.   :98199   Max.   :47.78   Max.   :-121.3  
+##  sqft_living15    sqft_lot15    
+##  Min.   : 399   Min.   :   651  
+##  1st Qu.:1490   1st Qu.:  5100  
+##  Median :1840   Median :  7620  
+##  Mean   :1987   Mean   : 12758  
+##  3rd Qu.:2360   3rd Qu.: 10083  
+##  Max.   :6210   Max.   :871200
+\end{verbatim}
+
+The dates are loaded as string of characters. Let's convert them to look
+at the range of values. The summary now shows that the dates are in the
+range of May 2014 - May 2015
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Convert Dates}
+\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{date<-}\KeywordTok{as.IDate}\NormalTok{(kc_houses}\OperatorTok{$}\NormalTok{date, }\DataTypeTok{format =} \StringTok{"%m/%d/%Y"}\NormalTok{)}
+\KeywordTok{summary}\NormalTok{(kc_houses)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##        id                  date                price        
+##  Min.   :   1000102   Min.   :2014-05-02   Min.   :  78000  
+##  1st Qu.:2123049175   1st Qu.:2014-07-22   1st Qu.: 322000  
+##  Median :3904930410   Median :2014-10-16   Median : 450000  
+##  Mean   :4580474287   Mean   :2014-10-29   Mean   : 540297  
+##  3rd Qu.:7308900490   3rd Qu.:2015-02-17   3rd Qu.: 645000  
+##  Max.   :9900000190   Max.   :2015-05-27   Max.   :7700000  
+##     bedrooms        bathrooms      sqft_living       sqft_lot      
+##  Min.   : 1.000   Min.   :0.500   Min.   :  370   Min.   :    520  
+##  1st Qu.: 3.000   1st Qu.:1.750   1st Qu.: 1430   1st Qu.:   5040  
+##  Median : 3.000   Median :2.250   Median : 1910   Median :   7618  
+##  Mean   : 3.373   Mean   :2.116   Mean   : 2080   Mean   :  15099  
+##  3rd Qu.: 4.000   3rd Qu.:2.500   3rd Qu.: 2550   3rd Qu.:  10685  
+##  Max.   :33.000   Max.   :8.000   Max.   :13540   Max.   :1651359  
+##      floors        waterfront            view          condition   
+##  Min.   :1.000   Min.   :0.000000   Min.   :0.0000   Min.   :1.00  
+##  1st Qu.:1.000   1st Qu.:0.000000   1st Qu.:0.0000   1st Qu.:3.00  
+##  Median :1.500   Median :0.000000   Median :0.0000   Median :3.00  
+##  Mean   :1.494   Mean   :0.007547   Mean   :0.2343   Mean   :3.41  
+##  3rd Qu.:2.000   3rd Qu.:0.000000   3rd Qu.:0.0000   3rd Qu.:4.00  
+##  Max.   :3.500   Max.   :1.000000   Max.   :4.0000   Max.   :5.00  
+##      grade          sqft_above   sqft_basement       yr_built   
+##  Min.   : 3.000   Min.   : 370   Min.   :   0.0   Min.   :1900  
+##  1st Qu.: 7.000   1st Qu.:1190   1st Qu.:   0.0   1st Qu.:1951  
+##  Median : 7.000   Median :1560   Median :   0.0   Median :1975  
+##  Mean   : 7.658   Mean   :1789   Mean   : 291.7   Mean   :1971  
+##  3rd Qu.: 8.000   3rd Qu.:2210   3rd Qu.: 560.0   3rd Qu.:1997  
+##  Max.   :13.000   Max.   :9410   Max.   :4820.0   Max.   :2015  
+##   yr_renovated        zipcode           lat             long       
+##  Min.   :   0.00   Min.   :98001   Min.   :47.16   Min.   :-122.5  
+##  1st Qu.:   0.00   1st Qu.:98033   1st Qu.:47.47   1st Qu.:-122.3  
+##  Median :   0.00   Median :98065   Median :47.57   Median :-122.2  
+##  Mean   :  84.46   Mean   :98078   Mean   :47.56   Mean   :-122.2  
+##  3rd Qu.:   0.00   3rd Qu.:98118   3rd Qu.:47.68   3rd Qu.:-122.1  
+##  Max.   :2015.00   Max.   :98199   Max.   :47.78   Max.   :-121.3  
+##  sqft_living15    sqft_lot15    
+##  Min.   : 399   Min.   :   651  
+##  1st Qu.:1490   1st Qu.:  5100  
+##  Median :1840   Median :  7620  
+##  Mean   :1987   Mean   : 12758  
+##  3rd Qu.:2360   3rd Qu.: 10083  
+##  Max.   :6210   Max.   :871200
+\end{verbatim}
+
+\hypertarget{multicollinearity-analysis}{%
+\subsection{Multicollinearity
+Analysis}\label{multicollinearity-analysis}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Corr Plot}
+\NormalTok{cor_mat <-}\StringTok{ }\NormalTok{kc_houses[,}\DecValTok{3}\OperatorTok{:}\DecValTok{21}\NormalTok{]}
+\NormalTok{corr <-}\StringTok{ }\KeywordTok{cor}\NormalTok{(cor_mat, }\DataTypeTok{use =} \StringTok{"pairwise.complete.obs"}\NormalTok{)}
+
+\KeywordTok{ggcorrplot}\NormalTok{(corr, }\DataTypeTok{hc.order =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{type =} \StringTok{"lower"}\NormalTok{,}
+           \DataTypeTok{ggtheme =}\NormalTok{ ggthemes}\OperatorTok{::}\NormalTok{theme_gdocs,}
+           \DataTypeTok{colors =} \KeywordTok{c}\NormalTok{(}\StringTok{"#ff7f0e"}\NormalTok{, }\StringTok{"white"}\NormalTok{, }\StringTok{"#1f83b4"}\NormalTok{),}
+           \DataTypeTok{lab =} \OtherTok{TRUE}\NormalTok{)}\OperatorTok{+}
+\StringTok{           }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{panel.grid.major=}\KeywordTok{element_blank}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ClassPresentation_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+\hypertarget{univariate-analysis}{%
+\subsection{Univariate Analysis}\label{univariate-analysis}}
+
+In case of just the dependent variable and 0 independent variable, the
+best fit model is the mean of the dependent variable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Univariate model}
+\KeywordTok{ggplot}\NormalTok{(kc_houses, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\KeywordTok{seq_along}\NormalTok{(id), }\DataTypeTok{y=}\NormalTok{price))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{col =} \StringTok{"#1f83b4"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_hline}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{yintercept =} \KeywordTok{mean}\NormalTok{(kc_houses}\OperatorTok{$}\NormalTok{price,}\DataTypeTok{na.rm =}\NormalTok{ T)), }\DataTypeTok{col =} \StringTok{"#ff7f0e"}\NormalTok{)}\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{scale_color_tableau}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x=}\StringTok{"Id"}\NormalTok{, }\DataTypeTok{y=}\StringTok{"Price"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{panel.background =} \KeywordTok{element_blank}\NormalTok{(), }\DataTypeTok{axis.line =} \KeywordTok{element_line}\NormalTok{(}\DataTypeTok{colour =} \StringTok{"grey"}\NormalTok{), }\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{hjust =} \FloatTok{0.5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ClassPresentation_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+Calculating the Sum of Square of Errors/Residuals
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{kc_houses[,err}\OperatorTok{:}\ErrorTok{=}\NormalTok{price}\OperatorTok{-}\KeywordTok{mean}\NormalTok{(price,}\DataTypeTok{na.rm =}\NormalTok{ T)]}
+\NormalTok{kc_houses[,err_sq}\OperatorTok{:}\ErrorTok{=}\NormalTok{err}\OperatorTok{^}\DecValTok{2}\NormalTok{]}
+\NormalTok{sse <-}\StringTok{ }\KeywordTok{sum}\NormalTok{(kc_houses}\OperatorTok{$}\NormalTok{err_sq)}
+\KeywordTok{options}\NormalTok{(}\DataTypeTok{scipen =} \DecValTok{999}\NormalTok{)}
+\CommentTok{# Total Sum of Squares = Sum of Square of Residuals}
+\NormalTok{sse}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2914582130408202
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Sample mean}
+\KeywordTok{mean}\NormalTok{(kc_houses}\OperatorTok{$}\NormalTok{price,}\DataTypeTok{na.rm =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 540296.6
+\end{verbatim}
+
+\hypertarget{simple-linear-regression}{%
+\subsection{Simple Linear Regression}\label{simple-linear-regression}}
+
+Let us look at scatter plots of dependent variables and 3 chosen
+independent variables. Below is the function created to combine the
+scatter plot, histograms and density plots.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ggplot_scatter_hist_combo <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(dat, a, b, lab_a, lab_b)\{}
+  \CommentTok{# if(is.null(lab_a))}
+  \CommentTok{#   lab_a<-a}
+  \CommentTok{# if(is.null(lab_b))}
+  \CommentTok{#   lab_b<-b}
+
+\NormalTok{  theme_blank<-}\StringTok{ }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.line=}\KeywordTok{element_blank}\NormalTok{(),}\DataTypeTok{axis.text.x=}\KeywordTok{element_blank}\NormalTok{(),}
+                      \DataTypeTok{axis.text.y=}\KeywordTok{element_blank}\NormalTok{(),}\DataTypeTok{axis.ticks=}\KeywordTok{element_blank}\NormalTok{(),}
+                      \DataTypeTok{axis.title.x=}\KeywordTok{element_blank}\NormalTok{(),}
+                      \DataTypeTok{axis.title.y=}\KeywordTok{element_blank}\NormalTok{(),}\DataTypeTok{legend.position=}\StringTok{"none"}\NormalTok{,}
+                      \DataTypeTok{panel.background=}\KeywordTok{element_rect}\NormalTok{(}\DataTypeTok{fill =} \StringTok{"transparent"}\NormalTok{),}\DataTypeTok{panel.border=}\KeywordTok{element_blank}\NormalTok{(),}\DataTypeTok{panel.grid.major=}\KeywordTok{element_blank}\NormalTok{(),}
+                      \DataTypeTok{panel.grid.minor=}\KeywordTok{element_blank}\NormalTok{(),}\DataTypeTok{plot.background=}\KeywordTok{element_rect}\NormalTok{(}\DataTypeTok{fill =} \StringTok{"transparent"}\NormalTok{, }\DataTypeTok{color =} \OtherTok{NA}\NormalTok{))}
+  
+\NormalTok{  hist_top<-}\KeywordTok{ggplot}\NormalTok{(dat, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{a)) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{geom_histogram}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y =}\NormalTok{..density..), }
+                   \DataTypeTok{col=}\StringTok{"#ff7f0e"}\NormalTok{, }
+                   \DataTypeTok{fill=}\StringTok{"#ffaa0e"}\NormalTok{, }
+                   \DataTypeTok{alpha =} \FloatTok{.2}\NormalTok{,}
+                   \DataTypeTok{bins =} \DecValTok{35}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{geom_density}\NormalTok{(}\DataTypeTok{col=}\StringTok{"#ff7f0e"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{scale_color_tableau}\NormalTok{() }\OperatorTok{+}
+\StringTok{    }\NormalTok{theme_blank}
+  
+\NormalTok{  empty <-}\StringTok{ }\KeywordTok{ggplot}\NormalTok{()}\OperatorTok{+}\KeywordTok{geom_point}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{), }\DataTypeTok{colour=}\StringTok{"white"}\NormalTok{)}\OperatorTok{+}
+\StringTok{    }\NormalTok{theme_blank}
+  
+\NormalTok{  scatter<-}\KeywordTok{ggplot}\NormalTok{(dat, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{a, }\DataTypeTok{y=}\NormalTok{b))}\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{col=}\StringTok{"#1f83b4"}\NormalTok{)}\OperatorTok{+}
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x=}\NormalTok{lab_a, }\DataTypeTok{y=}\NormalTok{lab_b)}\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{panel.background =} \KeywordTok{element_blank}\NormalTok{(), }\DataTypeTok{axis.line =} \KeywordTok{element_line}\NormalTok{(}\DataTypeTok{colour =} \StringTok{"grey"}\NormalTok{), }\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{hjust =} \FloatTok{0.5}\NormalTok{))}
+  
+\NormalTok{  hist_right <-}\StringTok{ }\KeywordTok{ggplot}\NormalTok{(dat, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{b)) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{geom_histogram}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y =}\NormalTok{..density..), }
+                   \DataTypeTok{col=}\StringTok{"#ff7f0e"}\NormalTok{, }
+                   \DataTypeTok{fill=}\StringTok{"#ffaa0e"}\NormalTok{, }
+                   \DataTypeTok{alpha =} \FloatTok{.2}\NormalTok{,}
+                   \DataTypeTok{bins =} \DecValTok{35}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{geom_density}\NormalTok{(}\DataTypeTok{col=}\StringTok{"#ff7f0e"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{coord_flip}\NormalTok{() }\OperatorTok{+}
+\StringTok{    }\NormalTok{theme_blank}
+  
+  \KeywordTok{grid.arrange}\NormalTok{(hist_top, empty, scatter, hist_right, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{nrow=}\DecValTok{2}\NormalTok{, }\DataTypeTok{widths=}\KeywordTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{), }\DataTypeTok{heights=}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{4}\NormalTok{))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{scatterhistogramdensity-plots-sq.-ft-living-vs-price}{%
+\subsubsection{Scatter/Histogram/Density Plots: Sq. Ft Living vs
+Price}\label{scatterhistogramdensity-plots-sq.-ft-living-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot_scatter_hist_combo}\NormalTok{(}\DataTypeTok{dat =}\NormalTok{ kc_houses, }\DataTypeTok{a=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{sqft_living, }\DataTypeTok{b=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{price, }\DataTypeTok{lab_a =} \StringTok{"Sq. Ft. Living"}\NormalTok{, }\DataTypeTok{lab_b =} \StringTok{"Price"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ClassPresentation_files/figure-latex/unnamed-chunk-10-1.pdf}
+
+\hypertarget{scatterhistogramdensity-plots-grade-vs-price}{%
+\subsubsection{Scatter/Histogram/Density Plots: Grade vs
+Price}\label{scatterhistogramdensity-plots-grade-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot_scatter_hist_combo}\NormalTok{(}\DataTypeTok{dat =}\NormalTok{ kc_houses, }\DataTypeTok{a=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{grade, }\DataTypeTok{b=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{price, }\DataTypeTok{lab_a =} \StringTok{"Grade"}\NormalTok{, }\DataTypeTok{lab_b =} \StringTok{"Price"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ClassPresentation_files/figure-latex/unnamed-chunk-11-1.pdf}
+
+\hypertarget{scatterhistogramdensity-plots-sq.-ft.-above-vs-price}{%
+\subsubsection{Scatter/Histogram/Density Plots: Sq. Ft. Above vs
+Price}\label{scatterhistogramdensity-plots-sq.-ft.-above-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot_scatter_hist_combo}\NormalTok{(}\DataTypeTok{dat =}\NormalTok{ kc_houses, }\DataTypeTok{a=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{sqft_above, }\DataTypeTok{b=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{price, }\DataTypeTok{lab_a =} \StringTok{"Sq. Ft. Above"}\NormalTok{, }\DataTypeTok{lab_b =} \StringTok{"Price"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ClassPresentation_files/figure-latex/unnamed-chunk-12-1.pdf}
+
+\hypertarget{scatterhistogramdensity-plots-sq.-ft-above-vs-sq.-ft.-living}{%
+\subsubsection{Scatter/Histogram/Density Plots: Sq. Ft Above vs Sq. Ft.
+Living}\label{scatterhistogramdensity-plots-sq.-ft-above-vs-sq.-ft.-living}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot_scatter_hist_combo}\NormalTok{(}\DataTypeTok{dat =}\NormalTok{ kc_houses, }\DataTypeTok{a=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{sqft_above, }\DataTypeTok{b=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{sqft_living, }\DataTypeTok{lab_a =} \StringTok{"Sq. Ft. Above"}\NormalTok{, }\DataTypeTok{lab_b =} \StringTok{"Sq. Ft. Living"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ClassPresentation_files/figure-latex/unnamed-chunk-13-1.pdf}
+
+\hypertarget{scatterhistogramdensity-plots-sq.-ft-above-vs-grade}{%
+\subsubsection{Scatter/Histogram/Density Plots: Sq. Ft Above vs
+Grade}\label{scatterhistogramdensity-plots-sq.-ft-above-vs-grade}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot_scatter_hist_combo}\NormalTok{(}\DataTypeTok{dat =}\NormalTok{ kc_houses, }\DataTypeTok{a=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{sqft_above, }\DataTypeTok{b=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{grade, }\DataTypeTok{lab_a =} \StringTok{"Sq. Ft. Above"}\NormalTok{, }\DataTypeTok{lab_b =} \StringTok{"Grade"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ClassPresentation_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+\hypertarget{scatterhistogramdensity-plots-sq.-ft-living-vs-grade}{%
+\subsubsection{Scatter/Histogram/Density Plots: Sq. Ft Living vs
+Grade}\label{scatterhistogramdensity-plots-sq.-ft-living-vs-grade}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot_scatter_hist_combo}\NormalTok{(}\DataTypeTok{dat =}\NormalTok{ kc_houses, }\DataTypeTok{a=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{sqft_living, }\DataTypeTok{b=}\NormalTok{kc_houses}\OperatorTok{$}\NormalTok{grade, }\DataTypeTok{lab_a =} \StringTok{"Sq. Ft. Living"}\NormalTok{, }\DataTypeTok{lab_b =} \StringTok{"Grade"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ClassPresentation_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+\hypertarget{fitting-a-linear-regression-sq.-ft-living-vs-price}{%
+\subsubsection{Fitting a linear regression: Sq. Ft Living vs
+Price}\label{fitting-a-linear-regression-sq.-ft-living-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model<-}\KeywordTok{lm}\NormalTok{(price}\OperatorTok{~}\NormalTok{sqft_living, }\DataTypeTok{data =}\NormalTok{ kc_houses)}
+\CommentTok{# Coefficent of Determination}
+\KeywordTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = price ~ sqft_living, data = kc_houses)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1478896  -147583   -24131   106274  4359590 
+## 
+## Coefficients:
+##               Estimate Std. Error t value            Pr(>|t|)    
+## (Intercept) -43988.892   4410.023  -9.975 <0.0000000000000002 ***
+## sqft_living    280.863      1.939 144.819 <0.0000000000000002 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 261700 on 21595 degrees of freedom
+## Multiple R-squared:  0.4927, Adjusted R-squared:  0.4927 
+## F-statistic: 2.097e+04 on 1 and 21595 DF,  p-value: < 0.00000000000000022
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Analysis of Variance}
+\KeywordTok{anova}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: price
+##                Df           Sum Sq          Mean Sq F value
+## sqft_living     1 1435979346411368 1435979346411368   20972
+## Residuals   21595 1478602783996835      68469682056        
+##                            Pr(>F)    
+## sqft_living < 0.00000000000000022 ***
+## Residuals                            
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Variable Inflation Factor}
+\CommentTok{#vif(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{fitting-a-linear-regression-grade-vs-price}{%
+\subsubsection{Fitting a linear regression: Grade vs
+Price}\label{fitting-a-linear-regression-grade-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model<-}\KeywordTok{lm}\NormalTok{(price}\OperatorTok{~}\NormalTok{grade, }\DataTypeTok{data =}\NormalTok{ kc_houses)}
+\CommentTok{# Coefficent of Determination}
+\KeywordTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = price ~ grade, data = kc_houses)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -819320 -151846  -36054   98154 6042365 
+## 
+## Coefficients:
+##             Estimate Std. Error t value            Pr(>|t|)    
+## (Intercept) -1061416      12286   -86.4 <0.0000000000000002 ***
+## grade         209158       1586   131.9 <0.0000000000000002 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 273400 on 21595 degrees of freedom
+## Multiple R-squared:  0.4462, Adjusted R-squared:  0.4461 
+## F-statistic: 1.74e+04 on 1 and 21595 DF,  p-value: < 0.00000000000000022
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Analysis of Variance}
+\KeywordTok{anova}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: price
+##              Df           Sum Sq          Mean Sq F value
+## grade         1 1300364813228575 1300364813228575   17396
+## Residuals 21595 1614217317179626      74749586348        
+##                          Pr(>F)    
+## grade     < 0.00000000000000022 ***
+## Residuals                          
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Variable Inflation Factor}
+\CommentTok{#vif(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{fitting-a-linear-regression-sq.-ft.-above-vs-price}{%
+\subsubsection{Fitting a linear regression: Sq. Ft. Above vs
+Price}\label{fitting-a-linear-regression-sq.-ft.-above-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model<-}\KeywordTok{lm}\NormalTok{(price}\OperatorTok{~}\NormalTok{sqft_above, }\DataTypeTok{data =}\NormalTok{ kc_houses)}
+\CommentTok{# Coefficent of Determination}
+\KeywordTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = price ~ sqft_above, data = kc_houses)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -914000 -165893  -41486  109326 5337755 
+## 
+## Coefficients:
+##              Estimate Std. Error t value            Pr(>|t|)    
+## (Intercept) 59757.111   4737.581   12.61 <0.0000000000000002 ***
+## sqft_above    268.668      2.404  111.77 <0.0000000000000002 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 292400 on 21595 degrees of freedom
+## Multiple R-squared:  0.3665, Adjusted R-squared:  0.3664 
+## F-statistic: 1.249e+04 on 1 and 21595 DF,  p-value: < 0.00000000000000022
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Analysis of Variance}
+\KeywordTok{anova}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: price
+##               Df           Sum Sq          Mean Sq F value
+## sqft_above     1 1068107925465501 1068107925465501   12492
+## Residuals  21595 1846474204942702      85504709652        
+##                           Pr(>F)    
+## sqft_above < 0.00000000000000022 ***
+## Residuals                           
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Variable Inflation Factor}
+\CommentTok{#vif(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{multiple-regression}{%
+\subsection{Multiple Regression}\label{multiple-regression}}
+
+\hypertarget{fitting-a-multiple-regression-sq.-ft.-living-grade-vs-price}{%
+\subsubsection{Fitting a multiple regression: Sq. Ft. Living + Grade vs
+Price}\label{fitting-a-multiple-regression-sq.-ft.-living-grade-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model<-}\KeywordTok{lm}\NormalTok{(price}\OperatorTok{~}\NormalTok{sqft_living}\OperatorTok{+}\NormalTok{grade, }\DataTypeTok{data =}\NormalTok{ kc_houses)}
+\CommentTok{# Coefficent of Determination}
+\KeywordTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = price ~ sqft_living + grade, data = kc_houses)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1066199  -138328   -24864   100523  4793864 
+## 
+## Coefficients:
+##                Estimate  Std. Error t value            Pr(>|t|)    
+## (Intercept) -602791.788   13341.637  -45.18 <0.0000000000000002 ***
+## sqft_living     184.121       2.872   64.10 <0.0000000000000002 ***
+## grade         99251.094    2247.784   44.16 <0.0000000000000002 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 250600 on 21594 degrees of freedom
+## Multiple R-squared:  0.5347, Adjusted R-squared:  0.5347 
+## F-statistic: 1.241e+04 on 2 and 21594 DF,  p-value: < 0.00000000000000022
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Analysis of Variance}
+\KeywordTok{anova}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: price
+##                Df           Sum Sq          Mean Sq F value
+## sqft_living     1 1435979346411368 1435979346411368 22865.0
+## grade           1  122444337887608  122444337887608  1949.7
+## Residuals   21594 1356158446109227      62802558401        
+##                            Pr(>F)    
+## sqft_living < 0.00000000000000022 ***
+## grade       < 0.00000000000000022 ***
+## Residuals                            
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Variable Inflation Factor}
+\KeywordTok{print}\NormalTok{(}\StringTok{'Variable Inflation Factor'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Variable Inflation Factor"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{vif}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## sqft_living       grade 
+##    2.391383    2.391383
+\end{verbatim}
+
+\hypertarget{fitting-a-multiple-regression-sq.-ft.-living-sq.-ft.-above-vs-price}{%
+\subsubsection{Fitting a multiple regression: Sq. Ft. Living + Sq. Ft.
+Above vs
+Price}\label{fitting-a-multiple-regression-sq.-ft.-living-sq.-ft.-above-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model<-}\KeywordTok{lm}\NormalTok{(price}\OperatorTok{~}\NormalTok{sqft_living}\OperatorTok{+}\NormalTok{sqft_above, }\DataTypeTok{data =}\NormalTok{ kc_houses)}
+\CommentTok{# Coefficent of Determination}
+\KeywordTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = price ~ sqft_living + sqft_above, data = kc_houses)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1505870  -147424   -23666   105379  4338962 
+## 
+## Coefficients:
+##               Estimate Std. Error t value             Pr(>|t|)    
+## (Intercept) -41266.657   4455.441  -9.262 < 0.0000000000000002 ***
+## sqft_living    295.726      4.026  73.448 < 0.0000000000000002 ***
+## sqft_above     -18.810      4.466  -4.212            0.0000254 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 261600 on 21594 degrees of freedom
+## Multiple R-squared:  0.4931, Adjusted R-squared:  0.4931 
+## F-statistic: 1.05e+04 on 2 and 21594 DF,  p-value: < 0.00000000000000022
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Analysis of Variance}
+\KeywordTok{anova}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: price
+##                Df           Sum Sq          Mean Sq   F value
+## sqft_living     1 1435979346411368 1435979346411368 20988.743
+## sqft_above      1    1213763626630    1213763626630    17.741
+## Residuals   21594 1477389020370205      68416644455          
+##                            Pr(>F)    
+## sqft_living < 0.00000000000000022 ***
+## sqft_above             0.00002542 ***
+## Residuals                            
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Variable Inflation Factor}
+\KeywordTok{print}\NormalTok{(}\StringTok{'Variable Inflation Factor'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Variable Inflation Factor"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{vif}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## sqft_living  sqft_above 
+##    4.313332    4.313332
+\end{verbatim}
+
+\hypertarget{fitting-a-multiple-regression-grade-sq.-ft.-above-vs-price}{%
+\subsubsection{Fitting a multiple regression: Grade + Sq. Ft. Above vs
+Price}\label{fitting-a-multiple-regression-grade-sq.-ft.-above-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model<-}\KeywordTok{lm}\NormalTok{(price}\OperatorTok{~}\NormalTok{grade}\OperatorTok{+}\NormalTok{sqft_above, }\DataTypeTok{data =}\NormalTok{ kc_houses)}
+\CommentTok{# Coefficent of Determination}
+\KeywordTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = price ~ grade + sqft_above, data = kc_houses)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -797336 -149181  -33804  100261 5633593 
+## 
+## Coefficients:
+##               Estimate Std. Error t value            Pr(>|t|)    
+## (Intercept) -822646.15   14286.16  -57.58 <0.0000000000000002 ***
+## grade        153695.00    2371.02   64.82 <0.0000000000000002 ***
+## sqft_above      103.97       3.36   30.94 <0.0000000000000002 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 267500 on 21594 degrees of freedom
+## Multiple R-squared:  0.4697, Adjusted R-squared:  0.4696 
+## F-statistic:  9562 on 2 and 21594 DF,  p-value: < 0.00000000000000022
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Analysis of Variance}
+\KeywordTok{anova}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: price
+##               Df           Sum Sq          Mean Sq F value
+## grade          1 1300364813228575 1300364813228575 18166.6
+## sqft_above     1   68516724201419   68516724201419   957.2
+## Residuals  21594 1545700592978208      71580095998        
+##                           Pr(>F)    
+## grade      < 0.00000000000000022 ***
+## sqft_above < 0.00000000000000022 ***
+## Residuals                           
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Variable Inflation Factor}
+\KeywordTok{print}\NormalTok{(}\StringTok{'Variable Inflation Factor'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Variable Inflation Factor"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{vif}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      grade sqft_above 
+##   2.334516   2.334516
+\end{verbatim}
+
+\hypertarget{fitting-a-multiple-regression-sq.-ft.-living-grade-sq.-ft.-above-vs-price}{%
+\subsubsection{Fitting a multiple regression: Sq. Ft. Living + Grade +
+Sq. Ft. Above vs
+Price}\label{fitting-a-multiple-regression-sq.-ft.-living-grade-sq.-ft.-above-vs-price}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model<-}\KeywordTok{lm}\NormalTok{(price}\OperatorTok{~}\NormalTok{sqft_living}\OperatorTok{+}\NormalTok{grade}\OperatorTok{+}\NormalTok{sqft_above, }\DataTypeTok{data =}\NormalTok{ kc_houses)}
+\CommentTok{# Coefficent of Determination}
+\KeywordTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = price ~ sqft_living + grade + sqft_above, data = kc_houses)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1120217  -136869   -24076    97184  4758690 
+## 
+## Coefficients:
+##                Estimate  Std. Error t value            Pr(>|t|)    
+## (Intercept) -656430.921   13591.272  -48.30 <0.0000000000000002 ***
+## sqft_living     234.590       4.039   58.08 <0.0000000000000002 ***
+## grade        110785.608    2325.608   47.64 <0.0000000000000002 ***
+## sqft_above      -78.096       4.427  -17.64 <0.0000000000000002 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 248800 on 21593 degrees of freedom
+## Multiple R-squared:  0.5413, Adjusted R-squared:  0.5412 
+## F-statistic:  8494 on 3 and 21593 DF,  p-value: < 0.00000000000000022
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Analysis of Variance}
+\KeywordTok{anova}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: price
+##                Df           Sum Sq          Mean Sq  F value
+## sqft_living     1 1435979346411368 1435979346411368 23193.47
+## grade           1  122444337887608  122444337887608  1977.68
+## sqft_above      1   19269340667109   19269340667109   311.23
+## Residuals   21593 1336889105442118      61913078564         
+##                            Pr(>F)    
+## sqft_living < 0.00000000000000022 ***
+## grade       < 0.00000000000000022 ***
+## sqft_above  < 0.00000000000000022 ***
+## Residuals                            
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Variable Inflation Factor}
+\KeywordTok{print}\NormalTok{(}\StringTok{'Variable Inflation Factor'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Variable Inflation Factor"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{vif}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## sqft_living       grade  sqft_above 
+##    4.797597    2.596616    4.683512
+\end{verbatim}
+
+
+\end{document}

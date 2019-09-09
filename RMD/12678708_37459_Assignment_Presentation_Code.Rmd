@@ -1,0 +1,293 @@
+---
+title: "Multivariate Data Analysis - Presentation"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(dpi=300,fig.width=7)
+
+# Install Packages
+list.of.packages <- c("data.table"
+                      ,"car"
+                      ,"ggcorrplot"
+                      ,"ggthemes"
+                      ,"gridExtra"
+                      ,"ggplot2"
+                      )
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages, dependencies = T)
+
+# Load Packages
+library(data.table)
+library(ggplot2)
+library(gridExtra)
+library(ggthemes)
+library(ggcorrplot)
+library(car)
+```
+
+## Multivariate Data Analysis Spring 2019 (37459-2019-SPRING-CITY)
+### Assignment: Presentation
+### Student Name: Anuj Kapil
+### Student Id: 12678708
+
+
+## Step 1: Download the dataset from Kaggle
+
+To simplify the process, I am using my github account to host the dataset but the original dataset is available here:
+[Kaggle: House Sales in King County](https://www.kaggle.com/harlfoxem/housesalesprediction)
+```{r}
+wd <- getwd()
+filep <- "https://raw.githubusercontent.com/anuj-kapil/mda/master/Data/kc_house_data.csv"
+filename <- "kc_house_data.csv"
+download.file(url=filep, destfile=filename)
+```
+
+## Step 2: Read the downloaded file to memory
+
+We are using the data.table package from R to read the file in to memory
+
+```{r}
+kc_houses<-fread('kc_house_data.csv')
+```
+
+## Step 3: Exploratory Analysis
+
+Let's have a look at the number of features and observations in the dataset
+```{r}
+# Rows and columns
+dim(kc_houses)
+```
+
+Quick look at the data types and ranges of data. Below summary shows that there are no null or missing values
+```{r}
+# No missing values
+summary(kc_houses)
+```
+The dates are loaded as string of characters. Let's convert them to look at the range of values. The summary now shows that the dates are in the range of May 2014 - May 2015
+```{r}
+# Convert Dates
+kc_houses$date<-as.IDate(kc_houses$date, format = "%m/%d/%Y")
+summary(kc_houses)
+```
+
+## Multicollinearity Analysis
+
+```{r,dpi=300, fig.width=7, fig.height=7}
+#Corr Plot
+cor_mat <- kc_houses[,3:21]
+corr <- cor(cor_mat, use = "pairwise.complete.obs")
+
+ggcorrplot(corr, hc.order = FALSE, type = "lower",
+           ggtheme = ggthemes::theme_gdocs,
+           colors = c("#ff7f0e", "white", "#1f83b4"),
+           lab = TRUE)+
+           theme(panel.grid.major=element_blank())
+```
+
+## Univariate Analysis
+
+In case of just the dependent variable and 0 independent variable, the best fit model is the mean of the dependent variable.
+
+```{r,dpi=300, fig.width=7, fig.height=5}
+# Univariate model
+ggplot(kc_houses, aes(x=seq_along(id), y=price))+
+  geom_point(col = "#1f83b4")+
+  geom_hline(aes(yintercept = mean(kc_houses$price,na.rm = T)), col = "#ff7f0e")+ 
+  scale_color_tableau() +
+  labs(x="Id", y="Price")+
+  theme(panel.background = element_blank(), axis.line = element_line(colour = "grey"), plot.title = element_text(hjust = 0.5))
+```
+
+Calculating the Sum of Square of Errors/Residuals
+
+```{r}
+kc_houses[,err:=price-mean(price,na.rm = T)]
+kc_houses[,err_sq:=err^2]
+sse <- sum(kc_houses$err_sq)
+options(scipen = 999)
+# Total Sum of Squares = Sum of Square of Residuals
+sse
+
+# Sample mean
+mean(kc_houses$price,na.rm = T)
+```
+
+## Simple Linear Regression
+
+Let us look at scatter plots of dependent variables and 3 chosen independent variables. 
+Below is the function created to combine the scatter plot, histograms and density plots.  
+```{r}
+ggplot_scatter_hist_combo <- function(dat, a, b, lab_a, lab_b){
+  # if(is.null(lab_a))
+  #   lab_a<-a
+  # if(is.null(lab_b))
+  #   lab_b<-b
+
+  theme_blank<- theme(axis.line=element_blank(),axis.text.x=element_blank(),
+                      axis.text.y=element_blank(),axis.ticks=element_blank(),
+                      axis.title.x=element_blank(),
+                      axis.title.y=element_blank(),legend.position="none",
+                      panel.background=element_rect(fill = "transparent"),panel.border=element_blank(),panel.grid.major=element_blank(),
+                      panel.grid.minor=element_blank(),plot.background=element_rect(fill = "transparent", color = NA))
+  
+  hist_top<-ggplot(dat, aes(x=a)) + 
+    geom_histogram(aes(y =..density..), 
+                   col="#ff7f0e", 
+                   fill="#ffaa0e", 
+                   alpha = .2,
+                   bins = 35) + 
+    geom_density(col="#ff7f0e") + 
+    scale_color_tableau() +
+    theme_blank
+  
+  empty <- ggplot()+geom_point(aes(1,1), colour="white")+
+    theme_blank
+  
+  scatter<-ggplot(dat, aes(x=a, y=b))+
+    geom_point(col="#1f83b4")+
+    labs(x=lab_a, y=lab_b)+
+    theme(panel.background = element_blank(), axis.line = element_line(colour = "grey"), plot.title = element_text(hjust = 0.5))
+  
+  hist_right <- ggplot(dat, aes(x=b)) + 
+    geom_histogram(aes(y =..density..), 
+                   col="#ff7f0e", 
+                   fill="#ffaa0e", 
+                   alpha = .2,
+                   bins = 35) + 
+    geom_density(col="#ff7f0e") + 
+    coord_flip() +
+    theme_blank
+  
+  grid.arrange(hist_top, empty, scatter, hist_right, ncol=2, nrow=2, widths=c(4, 1), heights=c(1, 4))
+}
+```
+
+### Scatter/Histogram/Density Plots: Sq. Ft Living vs Price
+
+```{r,dpi=300, fig.width=7, fig.height=5}
+ggplot_scatter_hist_combo(dat = kc_houses, a=kc_houses$sqft_living, b=kc_houses$price, lab_a = "Sq. Ft. Living", lab_b = "Price")
+```
+
+### Scatter/Histogram/Density Plots: Grade vs Price
+
+```{r,dpi=300, fig.width=7, fig.height=5}
+ggplot_scatter_hist_combo(dat = kc_houses, a=kc_houses$grade, b=kc_houses$price, lab_a = "Grade", lab_b = "Price")
+```
+
+### Scatter/Histogram/Density Plots: Sq. Ft. Above vs Price
+
+```{r,dpi=300, fig.width=7, fig.height=5}
+ggplot_scatter_hist_combo(dat = kc_houses, a=kc_houses$sqft_above, b=kc_houses$price, lab_a = "Sq. Ft. Above", lab_b = "Price")
+```
+
+### Scatter/Histogram/Density Plots: Sq. Ft Above vs Sq. Ft. Living
+
+```{r,dpi=300, fig.width=7, fig.height=5}
+ggplot_scatter_hist_combo(dat = kc_houses, a=kc_houses$sqft_above, b=kc_houses$sqft_living, lab_a = "Sq. Ft. Above", lab_b = "Sq. Ft. Living")
+```
+
+### Scatter/Histogram/Density Plots: Sq. Ft Above vs Grade
+
+```{r,dpi=300, fig.width=7, fig.height=5}
+ggplot_scatter_hist_combo(dat = kc_houses, a=kc_houses$sqft_above, b=kc_houses$grade, lab_a = "Sq. Ft. Above", lab_b = "Grade")
+```
+
+### Scatter/Histogram/Density Plots: Sq. Ft Living vs Grade
+
+```{r,dpi=300, fig.width=7, fig.height=5}
+ggplot_scatter_hist_combo(dat = kc_houses, a=kc_houses$sqft_living, b=kc_houses$grade, lab_a = "Sq. Ft. Living", lab_b = "Grade")
+```
+
+### Fitting a linear regression: Sq. Ft Living vs Price
+
+```{r}
+model<-lm(price~sqft_living, data = kc_houses)
+# Coefficent of Determination
+summary(model)
+# Analysis of Variance
+anova(model)
+# Variable Inflation Factor
+#vif(model)
+```
+
+### Fitting a linear regression: Grade vs Price
+
+```{r}
+model<-lm(price~grade, data = kc_houses)
+# Coefficent of Determination
+summary(model)
+# Analysis of Variance
+anova(model)
+# Variable Inflation Factor
+#vif(model)
+```
+### Fitting a linear regression: Sq. Ft. Above vs Price
+
+```{r}
+model<-lm(price~sqft_above, data = kc_houses)
+# Coefficent of Determination
+summary(model)
+# Analysis of Variance
+anova(model)
+# Variable Inflation Factor
+#vif(model)
+```
+
+## Multiple Regression
+
+### Fitting a multiple regression: Sq. Ft. Living + Grade vs Price
+
+```{r}
+model<-lm(price~sqft_living+grade, data = kc_houses)
+# Coefficent of Determination
+summary(model)
+# Analysis of Variance
+anova(model)
+# Variable Inflation Factor
+print('Variable Inflation Factor')
+vif(model)
+```
+
+### Fitting a multiple regression: Sq. Ft. Living + Sq. Ft. Above vs Price
+
+```{r}
+model<-lm(price~sqft_living+sqft_above, data = kc_houses)
+# Coefficent of Determination
+summary(model)
+# Analysis of Variance
+anova(model)
+# Variable Inflation Factor
+print('Variable Inflation Factor')
+vif(model)
+```
+
+### Fitting a multiple regression: Grade + Sq. Ft. Above vs Price
+
+```{r}
+model<-lm(price~grade+sqft_above, data = kc_houses)
+# Coefficent of Determination
+summary(model)
+# Analysis of Variance
+anova(model)
+# Variable Inflation Factor
+print('Variable Inflation Factor')
+vif(model)
+```
+
+
+### Fitting a multiple regression: Sq. Ft. Living + Grade + Sq. Ft. Above vs Price
+
+```{r}
+model<-lm(price~sqft_living+grade+sqft_above, data = kc_houses)
+# Coefficent of Determination
+summary(model)
+# Analysis of Variance
+anova(model)
+# Variable Inflation Factor
+print('Variable Inflation Factor')
+vif(model)
+```

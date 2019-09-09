@@ -236,9 +236,7 @@ ggplot(kc_houses_test, aes(x=sqft_living, y=price))+
   geom_point()
 kc_houses_train$grade <- as.factor(kc_houses_train$grade)
 model<-lm(price~sqft_living+grade, data = kc_houses_train)
-model$effects
 summary(model)
-
 anova(model)
 vif(model)
 ggplot(wine2, aes(x=wine2$Cult)) + geom_density()
