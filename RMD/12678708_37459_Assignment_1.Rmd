@@ -5,6 +5,11 @@ output:
 #  pdf_document: default
 ---
 
+$$E(y) = \alpha + \beta{x}$$
+$$SSTr = \frac {T_{1}^2}{n_{1}} + \frac {T_{2}^2}{n_{2}} + ... + \frac {T_{k}^2}{n_{k}} - \frac {T^2}{n}$$
+
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(dpi=300,fig.width=7)
@@ -46,6 +51,7 @@ library(mnormt)
 ### Step 1: Download the dataset from online
 
 ```{r}
+
 wd <- getwd()
 res <- readLines("http://users.stat.umn.edu/~kb/classes/5401/files/data/JWData5.txt")
 # Figure out which lines we need. Each table reference will appear twice. Need to know the table you want and the next in the list
@@ -114,7 +120,7 @@ grid.arrange(p1, p2, ncol=2)
 
 obs.female[,list(x1)]
 
-par(mfrow = c(2, 1))
+#par(mfrow = c(2, 1))
 setDF(obs.female)
 qqnorm(obs.female[,3], sub = colnames(obs.female)[3])
 qqnorm(obs.female[,5], sub = colnames(obs.female)[5])
@@ -272,6 +278,12 @@ vcmat <- 1/5630 * matrix(c(575,-60,10,-60,300,-50,10,-50,196),nrow=3,byrow=TRUE)
 
 # inverse
 vcmat.inv <-solve(vcmat)
+
+# Covariance matrix
+print(vcmat)
+
+# Inverse of Covariance matrix
+print(vcmat.inv)
 ```
 
 ### Question 3b
@@ -279,6 +291,10 @@ vcmat.inv <-solve(vcmat)
 ```{r}
 # Question 3b
 
+cormat <- cov2cor(vcmat)
+print(cormat)
+
+# V1 and V3 ??? are conditionally independent
 ```
 
 ### Question 3c

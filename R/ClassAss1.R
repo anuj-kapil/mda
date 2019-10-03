@@ -191,7 +191,7 @@ library(mnormt)
 
 mv<-rep(0, 3)
 
-mnd <- mvrnorm(n=1000,mv,vcmat)
+mnd <- mvrnorm(n=10000,mv,vcmat)
 
 # Question 3d
 
