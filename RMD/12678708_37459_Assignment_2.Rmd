@@ -1,0 +1,472 @@
+---
+title: "Multivariate Data Analysis - Assignment 2"
+output:
+  word_document: default
+#  pdf_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(dpi=300,fig.width=7)
+
+# Install Packages
+list.of.packages <- c("data.table"
+                      ,"car"
+                      ,"ggcorrplot"
+                      ,"ggthemes"
+                      ,"gridExtra"
+                      ,"ggplot2"
+                      ,"lars"
+                      ,"MVN"
+                      ,"MASS"
+                      ,"mnormt"
+                      ,"ICSNP"
+                      ,"VGAM"
+                      ,"nnet"
+                      ,"rpart"
+                      ,"glmnet"
+                      ,"klaR"
+                      )
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages, dependencies = T)
+
+# Load Packages
+library(data.table)
+library(ggplot2)
+library(gridExtra)
+library(lars)
+library(MVN)
+library(ggthemes)
+library(ggcorrplot)
+library(car)
+library(MASS)
+library(mnormt)
+library(ICSNP)
+library(VGAM)
+library(nnet)
+library(rpart)
+library(glmnet)
+library(klaR)
+```
+
+## Multivariate Data Analysis Spring 2019 (37459-2019-SPRING-CITY)
+### Assignment: 2
+### Student Name: Anuj Kapil
+### Student Id: 12678708
+
+## Question 1
+For a given mean vector and covariance matrix, we can simulate random samples from the multivariate normal distribution in R using the 'mvrnorm' function from **MASS** package. 
+
+```{r}
+# Question 1
+# Mean vector
+mv<-rep(0, 3)
+
+# Cov matrix
+vcmat <- 1/5630 * matrix(c(575,-60,10,-60,300,-50,10,-50,196),nrow=3,byrow=TRUE)
+
+# Covariance matrix
+print(vcmat)
+
+#MVN
+mnd <- mvrnorm(n=1000,mv,vcmat)
+```
+
+### Question 1a
+
+Calculate the least square estimates using R function for Y2 and Y3 where:
+$$Y_2 = \beta_{2,1} Y_1 + \epsilon_2$$
+and
+
+$$Y_3 = \beta_{3,1} Y_1 + \beta_{3,2} Y_2 + \epsilon_3$$
+Peform a linear regression to find the coefficients $\beta_{2,1}$, $\beta_{3,1}$ and $\beta_{3,2}$.
+
+```{r}
+# Question 1a
+
+# Convert matrix to a data.table
+mnd_df <- as.data.frame(as.table(mnd))
+setDT(mnd_df)
+mnd_dt <- dcast(mnd_df, Var1~Var2, value.var = 'Freq')
+mnd_dt[,Var1:=NULL]
+
+colnames(mnd_dt) <- c('Y1', 'Y2', 'Y3')
+
+model_1<-lm(Y2~Y1, data = mnd_dt)
+
+model_summary <- summary(model_1)
+
+# Coefficent of Y1
+beta2_1 <- model_summary$coefficients[[2]]
+print(beta2_1)
+
+model_2<-lm(Y3~Y1+Y2, data = mnd_dt)
+
+model_summary <- summary(model_2)
+
+#Coefficent of Y1
+beta3_1 <- model_summary$coefficients[[2]]
+print(beta3_1)
+
+#Coefficent of Y2
+beta3_2 <- model_summary$coefficients[[3]]
+print(beta3_2)
+```
+
+### Question 1b
+
+Estimate $\sigma_2^2 = var(\epsilon_2)$
+
+```{r}
+# Question 1b
+sigma_2_square <- (summary(model_1)$sigma)^2
+print(sigma_2_square)
+```
+
+### Question 1c
+
+Estimate $\sigma_3^2 = var(\epsilon_3)$
+
+```{r}
+# Question 1c
+sigma_3_square <- (summary(model_2)$sigma)^2
+print(sigma_3_square)
+```
+
+### Question 1d
+
+Construct the 3x3 matrix from coefficients
+
+```{r}
+T <- matrix(c(1,-1*beta2_1,-1*beta3_1,0,1,-1*beta3_2,0,0,1),nrow = 3)
+print(T)
+```
+
+### Question 1e
+
+Compute $T\sum T^\intercal$
+
+```{r}
+TT <- T*vcmat*t(T)
+print(TT)
+```
+
+### Question 1f
+
+```{r}
+TT_inv <- solve(TT)
+sigma_inv <- solve(vcmat)
+
+y <- sigma_inv[1,1] 
+sigma_1_square <-y-(T[2,1]^2*sigma_2_square+ T[3,1]*sigma_3_square)
+```
+
+## Question 2
+
+### Load the dataset from local storage
+
+Load the dataset using 'fread' from **data.table** package
+
+```{r}
+dat <- fread('Data/stockdata.csv')
+```
+
+
+### Question 2a
+
+Perform factor analysis
+
+```{r}
+fact <- factanal(x = dat,factors = 2)
+```
+
+### Question 2b
+
+From loading matrix we can see:
+1. factor 1 explains JPMorgan in 76% of variance, Citibank in 81% of variance, wellsfargo in 66% of variance,
+2. Royaldutchshell in 11% of variance, ExxonMoboil in 10% of variance
+3. factor 2 epxlains 23% of Citibank variance, 10% of wellsfargo variance,99% of RotalDutchShell vairnace, 67% of ExxonMobil variance
+
+```{r}
+library('psych')
+factor.plot(fact)
+```
+
+Also from the loading plot, we can also see factor2 has influces more on RoyalDutchshell and ExxonMobil
+factor1 has more influences on Citibank and JPMorgan
+
+### Question 2b
+
+Compare
+
+## Question 3
+
+### Load the dataset from local storage
+
+```{r}
+egyptskull <- fread('Data/egyptskull.csv')
+
+summary(egyptskull)
+
+egyptskull[, Epoch:= as.factor(Epoch)]
+```
+### Question 3a
+
+Logistics Regression
+
+### Question 3b
+
+Classification Trees
+
+### Question 3c
+
+Scatter Plot
+
+```{r}
+
+ggplot(egyptskull, aes(x=MB, y=BH, group=Epoch))+
+  geom_point(aes(color=Epoch))
+
+```
+
+
+### Question 3d
+
+Split the dataset in to train and test datasets. For multionomial regression, we need to create 5 different response variables to denote the five levels of Epoch categories.
+
+```{r}
+egyptskull[, Epoch_1:=ifelse(Epoch == 4000, 1, 0)]
+egyptskull[, Epoch_2:=ifelse(Epoch == 3300, 1, 0)]
+egyptskull[, Epoch_3:=ifelse(Epoch == 1850, 1, 0)]
+egyptskull[, Epoch_4:=ifelse(Epoch == 200, 1, 0)]
+egyptskull[, Epoch_5:=ifelse(Epoch == 150, 1, 0)]
+
+
+egyptskull_train <- egyptskull[,.SD[1:25], by = list(Epoch)]
+egyptskull_test <- egyptskull[,.SD[26:30], by = list(Epoch)]
+
+egyptskull_train[, .N, by = list(Epoch)]
+egyptskull_test[, .N, by = list(Epoch)]
+
+```
+
+Perform LDA
+
+```{r}
+#######   LDA
+
+model_lda <- lda(Epoch ~ MB+BH+BL+NH, data=egyptskull_train)
+plot(model_lda)
+
+egyptskull_test$lda_predict<-predict(model_lda,egyptskull_test[,2:5])$class
+table(egyptskull_test$Epoch,egyptskull_test$lda_predict)
+
+mean(egyptskull_test$lda_predict != egyptskull_test$Epoch)
+
+partimat(as.factor(Epoch) ~ MB+BH+BL+NH, data=egyptskull_train,method="lda")
+```
+
+Perform QDA
+
+```{r}
+
+######## QDA
+
+model_qda<-qda(Epoch ~ MB+BH+BL+NH, data=egyptskull_train)
+model_qda
+
+egyptskull_test$qda_predict<-predict(model_qda,egyptskull_test[,2:5])$class
+table(egyptskull_test$Epoch,egyptskull_test$qda_predict)
+
+mean(egyptskull_test$qda_predict != egyptskull_test$Epoch)
+
+partimat(as.factor(Epoch) ~ MB+BH+BL+NH, data=egyptskull_train,method="qda")
+```
+
+Perform Multinomial Logistic 
+
+```{r}
+######  Multinomial Logistic 
+
+model_mnl<-vglm(formula = cbind(Epoch_1,Epoch_2,Epoch_3,Epoch_4,Epoch_5) ~ MB+BH+BL+NH, family = multinomial, data = egyptskull_train)
+summary(model_mnl)
+
+predictions<-predict(model_mnl,newdata=egyptskull_test[,2:5],type="response")
+egyptskull_test$pred_mnl<-apply(predictions,1,function(i) which.max(i) )
+
+egyptskull_test[, pred_mnl:= c(4000, 3300, 1850, 200, 150)[pred_mnl]]
+egyptskull_test[, unique(Epoch)]
+print(table(egyptskull_test$Epoch,egyptskull_test$pred_mnl))
+
+mean(egyptskull_test$pred_mnl != egyptskull_test$Epoch)
+```
+
+Perform CART
+
+```{r}
+
+######## CART
+
+model_ct <- rpart(Epoch ~ MB+BH+BL+NH, data = egyptskull_train, method="class")
+plot(model_ct)
+text(model_ct, use.n=TRUE, all=TRUE, cex=.7)
+
+plotcp(model_ct)
+
+egyptskull_test$pred_ct<-predict(model_ct,egyptskull_test,type="vector")
+egyptskull_test[, pred_ct:= c(4000, 3300, 1850, 200, 150)[pred_ct]]
+table(egyptskull_test$Epoch,egyptskull_test$pred_ct)
+
+mean(egyptskull_test$pred_ct != egyptskull_test$Epoch)
+
+model_ct$cptable
+
+model_ct_fit<- prune(model_ct, cp=model_ct$cptable[which.min(model_ct$cptable[,"xerror"]),"CP"])
+
+summary(model_ct_fit)
+
+plot(model_ct_fit)
+text(model_ct_fit, use.n=TRUE, all=TRUE, cex=.7)
+
+egyptskull_test$pred_ct_fit<-predict(model_ct_fit,egyptskull_test,type="vector")
+egyptskull_test[, pred_ct_fit:= c(4000, 3300, 1850, 200, 150)[pred_ct_fit]]
+table(egyptskull_test$Epoch,egyptskull_test$pred_ct_fit)
+
+mean(egyptskull_test$pred_ct_fit != egyptskull_test$Epoch)
+```
+
+Build a neural network
+
+```{r}
+##### Nnet
+
+model_nnet<-nnet(Epoch ~ MB+BH+BL+NH, data = egyptskull_train,size=5,decay=0.1)
+
+egyptskull_test$pred_nnet<-predict(model_nnet,egyptskull_test,type="class")
+table(egyptskull_test$Epoch,egyptskull_test$pred_nnet)
+
+mean(egyptskull_test$pred_nnet != egyptskull_test$Epoch)
+
+```
+
+### Question 3e
+
+```{r}
+# LDA
+table(egyptskull_test$Epoch,egyptskull_test$lda_predict)
+mean(egyptskull_test$lda_predict != egyptskull_test$Epoch)
+
+# QDA
+table(egyptskull_test$Epoch,egyptskull_test$qda_predict)
+mean(egyptskull_test$qda_predict != egyptskull_test$Epoch)
+
+# Multinomial
+print(table(egyptskull_test$Epoch,egyptskull_test$pred_mnl))
+mean(egyptskull_test$pred_mnl != egyptskull_test$Epoch)
+
+# CART
+table(egyptskull_test$Epoch,egyptskull_test$pred_ct_fit)
+mean(egyptskull_test$pred_ct_fit != egyptskull_test$Epoch)
+
+# Nnet
+table(egyptskull_test$Epoch,egyptskull_test$pred_nnet)
+mean(egyptskull_test$pred_nnet != egyptskull_test$Epoch)
+```
+
+### Question 3f
+
+```{r}
+####### Predict
+egyptskull_val <- data.table(rbind(c(128, 143, 103, 50) 
+                                  , c(129, 126, 91, 50)
+                                  , c(130, 127, 99, 45)
+                                  , c(130, 131, 98, 53)
+                                  , c(134, 124, 91, 55)
+                                  , c(130, 130, 104, 49)
+                                  , c(134, 139, 101, 49)
+                                  , c(136, 133, 91, 49)
+                                  ))
+
+names(egyptskull_val) <- names(egyptskull)[1:4]
+
+# Use multinomial
+
+predictions<-predict(model_mnl,newdata=egyptskull_val,type="response")
+
+egyptskull_val$pred_mnl<-apply(predictions,1,function(i) which.max(i) )
+
+egyptskull_val[, pred_mnl:= c(4000, 3300, 1850, 200, 150)[pred_mnl]]
+```
+
+
+# Part B
+
+## Question 1
+
+### Load the dataset from web
+
+```{r}
+#url <- 'https://web.stanford.edu/~hastie/Papers/LARS/diabetes.data'
+#diabetes_orig <- fread(url, sep = '\t')
+
+#fwrite(diabetes_orig, 'Data/diabetes.csv')
+
+# 
+# data(diabetes)
+# Xmatrix <- diabetes$x
+# yVector <- diabetes$y
+# 
+
+diabetes_orig <- fread('Data/diabetes.csv')
+dim(diabetes_orig)
+
+```
+
+### Question 1a
+
+```{r}
+
+Xmatrix <- as.matrix(diabetes_orig[,1:10])
+yVector <- diabetes_orig$Y
+
+dim(Xmatrix)
+
+cvfit <- cv.glmnet(Xmatrix , yVector)
+
+plot(cvfit)
+
+
+log(cvfit$lambda.min)
+
+coef(cvfit, s = "lambda.min")
+
+log(cvfit$lambda.1se)
+coef(cvfit, s = "lambda.1se")
+
+LASSOfit <- glmnet(Xmatrix , yVector)
+summary(LASSOfit)
+LASSOfit$lambda
+
+betaHat <- as.numeric(LASSOfit$beta)
+
+LASSOfit <- glmnet(Xmatrix , yVector , lambda=2)
+betaHat <- as.numeric(LASSOfit$beta)
+
+LASSOfit <- glmnet(Xmatrix , yVector , lambda=1)
+betaHat <- as.numeric(LASSOfit$beta)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
