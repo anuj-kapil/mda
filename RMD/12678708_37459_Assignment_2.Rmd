@@ -53,7 +53,10 @@ library(klaR)
 ### Student Name: Anuj Kapil
 ### Student Id: 12678708
 
+## Part A
+
 ## Question 1
+
 For a given mean vector and covariance matrix, we can simulate random samples from the multivariate normal distribution in R using the 'mvrnorm' function from **MASS** package. 
 
 ```{r}
@@ -194,7 +197,7 @@ factor.plot(fact)
 Also from the loading plot, we can also see factor2 has influces more on RoyalDutchshell and ExxonMobil
 factor1 has more influences on Citibank and JPMorgan
 
-### Question 2b
+### Question 2c
 
 Compare
 
@@ -398,7 +401,7 @@ egyptskull_val[, pred_mnl:= c(4000, 3300, 1850, 200, 150)[pred_mnl]]
 ```
 
 
-# Part B
+## Part B
 
 ## Question 1
 
@@ -448,25 +451,111 @@ LASSOfit$lambda
 
 betaHat <- as.numeric(LASSOfit$beta)
 
-LASSOfit <- glmnet(Xmatrix , yVector , lambda=2)
+LASSOfit <- glmnet(Xmatrix , yVector , lambda=1.2)
+summary(LASSOfit)
 betaHat <- as.numeric(LASSOfit$beta)
+
+rsq <- 1 - cvfit$cvm/var(yVector)
+
+plot(cvfit$lambda,rsq)
+
+lambda_rsq <- data.table(cbind(lambda=cvfit$lambda,rsq))
+
+lambda_rsq[rsq==max(rsq)]
 
 LASSOfit <- glmnet(Xmatrix , yVector , lambda=1)
 betaHat <- as.numeric(LASSOfit$beta)
 
 ```
 
+r-squared 49.93
+better fit
+similar co-oefficents
+automated way of finding co-efficents
+
+
+## Question 2
+
+### Load the dataset
+Seeds dataset contains data about four varities wheat capturing the hedonic characteristics of each variety of wheat.
+
+```{r}
+seeds <- fread('Data/seeds_dataset.txt', sep = "\t")
+col_names_seeds <- c("area", "perimeter", "compactness", "length_of_kernel", "width_of_kernel", "asymmetry_coefficient", "length_of_kernel_groove", "wheat_type")
+names(seeds) <- col_names_seeds
+```
+
+### Question 2a
+
+Estimate of covariance matrix using sample covariance method:
+
+$$Q = \frac {1}{n-1} \sum_{i=1}^n (x_i-\overline x)(x_i-\overline x)^T $$
+
+```{r}
+seeds_vcmat <- cov(seeds[,1:7])
+```
+
+### Question 2b
+
+Another method is maximum likelihood estimate:
+
+$$Q = \frac {1}{n} \sum_{i=1}^n (x_i-\overline x)(x_i-\overline x)^T $$
+
+Not very different
+
+### Question 2c
 
 
 
+### Multicollinearity Analysis
+
+```{r,dpi=300, fig.width=7, fig.height=7}
+#Corr Plot
+cor_mat <- seeds[,1:7]
+corr <- cor(cor_mat, use = "pairwise.complete.obs")
+
+ggcorrplot(corr, hc.order = FALSE, type = "lower",
+           ggtheme = ggthemes::theme_gdocs,
+           colors = c("#ff7f0e", "white", "#1f83b4"),
+           lab = TRUE)+
+           theme(panel.grid.major=element_blank())
+```
+High linear relationship among variables
+
+### Univariate Analysis
+
+Shapiro Wilk test rejects the null hypothesis of sample seeds$area being univariate normal.
+
+```{r}
+# Normal Q-Q plot for area
+qqnorm(seeds$area, sub = colnames(seeds)[1])
+ggplot(seeds, aes(x=area)) + geom_density()
+
+# Shapiro Wilk test for variable x2
+shapiro.test(seeds$area)
+
+```
 
 
+### Multivariate Normality test
 
+```{r}
+mvtest <- mvn(seeds[,1:7], mvnTest='royston', multivariatePlot='qq')
+mvtest$multivariateNormality
+mvtest$univariateNormality
+mvtest$Descriptives
 
+```
 
+### Transform to near normal
 
-
-
-
-
+```{r, eval = FALSE}
+trans<-powerTransform(seeds[,1:7])
+seeds_trans <- seeds[,1:7]
+seeds_trans<-bcPower(seeds_trans,trans$lambda)
+mvtest_trans <- mvn(seeds_trans, mvnTest='royston', multivariatePlot='qq')
+mvtest_trans$multivariateNormality
+mvtest_trans$univariateNormality
+mvtest_trans$Descriptives
+```
 

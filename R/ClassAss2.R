@@ -27,8 +27,8 @@ summary(egyptskull)
 
 egyptskull[, unique(Epoch)]
 
-ggplot(egyptskull, aes(x=MB, y=BH, group=Epoch))+
-  goem_point(aes(color=Epoch))
+ggplot(egyptskull, aes(x=NH, y=MB, group=Epoch)) +
+  geom_point(aes(color=Epoch))
 
 # model_logit <- glm(Epoch ~ MB+BH+BL+NH, family = 'binomial', data = egyptskull)
 # summary(model_logit)
@@ -195,3 +195,39 @@ LASSOfit <- glmnet(Xmatrix , yVector , lambda=1)
 betaHat <- as.numeric(LASSOfit$beta)
 
 ?glmnet
+
+
+getwd()
+
+seeds <- fread('Data/seeds_dataset.txt', sep = "\t")
+
+
+col_names_seeds <- c("area", "perimeter", "compactness", "length_of_kernel", "width_of_kernel", "asymmetry_coefficient", "length_of_kernel_groove", "wheat_type")
+names(seeds) <- col_names_seeds
+  
+seeds_vcmat <- cov(seeds[,1:7])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
