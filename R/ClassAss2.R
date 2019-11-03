@@ -204,19 +204,27 @@ seeds <- fread('Data/seeds_dataset.txt', sep = "\t")
 
 col_names_seeds <- c("area", "perimeter", "compactness", "length_of_kernel", "width_of_kernel", "asymmetry_coefficient", "length_of_kernel_groove", "wheat_type")
 names(seeds) <- col_names_seeds
-  
-seeds_vcmat <- cov(seeds[,1:7])
+
+temp <- copy(seeds)
+temp[perimeter<13, perimeter:=NA]
+
+set(temp, 1, 2, value = NULL)
+seeds_vcmat <- cov(temp[,1:7])
+solve(seeds_vcmat)
+?cov
+
+cov
+
+
+seeds[, .N, by = list(wheat_type)]
 
 
 
 
 
+?.Call()
 
-
-
-
-
-
+1/5
 
 
 

@@ -25,6 +25,7 @@ list.of.packages <- c("data.table"
                       ,"rpart"
                       ,"glmnet"
                       ,"klaR"
+                      ,"psych"
                       )
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, dependencies = T)
@@ -46,6 +47,7 @@ library(nnet)
 library(rpart)
 library(glmnet)
 library(klaR)
+library(psych)
 ```
 
 ## Multivariate Data Analysis Spring 2019 (37459-2019-SPRING-CITY)
@@ -81,7 +83,7 @@ $$Y_2 = \beta_{2,1} Y_1 + \epsilon_2$$
 and
 
 $$Y_3 = \beta_{3,1} Y_1 + \beta_{3,2} Y_2 + \epsilon_3$$
-Peform a linear regression to find the coefficients $\beta_{2,1}$, $\beta_{3,1}$ and $\beta_{3,2}$.
+Perform a linear regression to find the coefficients $\beta_{2,1}$, $\beta_{3,1}$ and $\beta_{3,2}$.
 
 ```{r}
 # Question 1a
@@ -117,7 +119,7 @@ print(beta3_2)
 
 ### Question 1b
 
-Estimate $\sigma_2^2 = var(\epsilon_2)$
+Estimate $\sigma_2^2 = var(\epsilon_2)$  
 
 ```{r}
 # Question 1b
@@ -127,7 +129,7 @@ print(sigma_2_square)
 
 ### Question 1c
 
-Estimate $\sigma_3^2 = var(\epsilon_3)$
+Estimate $\sigma_3^2 = var(\epsilon_3)$  
 
 ```{r}
 # Question 1c
@@ -142,6 +144,7 @@ Construct the 3x3 matrix from coefficients
 ```{r}
 T <- matrix(c(1,-1*beta2_1,-1*beta3_1,0,1,-1*beta3_2,0,0,1),nrow = 3)
 print(T)
+print(round(T%*%t(T)))
 ```
 
 ### Question 1e
@@ -149,86 +152,149 @@ print(T)
 Compute $T\sum T^\intercal$
 
 ```{r}
-TT <- T*vcmat*t(T)
+TT <- T%*%vcmat%*%t(T)
 print(TT)
 ```
 
 ### Question 1f
+Calculate $S^{-1}$ given:  
+$$S^{-1} = T^\intercal D^{-1} T$$
+where $D$ is a 3x3 diagonal matrix, with entries on the main diagonal as ${\sigma_1^2}$, ${\sigma_2^2}$, ${\sigma_3^2}$ and $T$ has already been calculated earlier.
+
+To make $S^{-1}$ as close to $\sum^{-1}$ possible, let us assume:
+
+$${\sum}^{-1} = T^\intercal D^{-1} T$$
+Based on that we can calculate the value of ${\sigma_1^2}$ as: 
+$${\sigma_1^2} = {{\sum}_{11}}^{-1} - (({T}_{21}^2 * {\sigma_2^2}) + ({T}_{31}^2 * {\sigma_3^2}))$$
 
 ```{r}
-TT_inv <- solve(TT)
-sigma_inv <- solve(vcmat)
+vcmat_inv <- solve(vcmat)
+round(vcmat_inv)
 
-y <- sigma_inv[1,1] 
+y <- vcmat_inv[1,1] 
 sigma_1_square <-y-(T[2,1]^2*sigma_2_square+ T[3,1]*sigma_3_square)
+
+sigma_1_square <-y-(sigma_2_square+ sigma_3_square)
+
+D = matrix(c(sigma_1_square, 0, 0, 0, sigma_2_square, 0, 0, 0, sigma_3_square),nrow = 3)
+print(D)
+
+print(round(vcmat_inv, 2))
+print(round(t(T)%*%solve(D)%*%T))
+
 ```
 
 ## Question 2
 
 ### Load the dataset from local storage
 
-Load the dataset using 'fread' from **data.table** package
+Load the dataset using 'fread' from **data.table** package.
+The stock data consists of weekly returns of five different stocks. The weekly returns of each stock are defined as (current week closing price - previous week closing price)/(previous week closing price) for 103 successive weeks.
 
 ```{r}
 dat <- fread('Data/stockdata.csv')
+summary(dat)
 ```
 
+The observations in the data appear to be independently distributed but the rate of return across stocks are correlated. Generally, one would expect the stocks would move together in response to general economic conditions. The correlation below shows a relationship between JPMorgan, Citibank and WellsFargo (banking stocks) and also relationship between Royal Dutch Shell and ExxonMobil (oil stocks)
+
+```{r}
+ggcorrplot(cor(dat, use = "pairwise.complete.obs"), hc.order = FALSE, type = "lower",
+           ggtheme = ggthemes::theme_gdocs,
+           colors = c("#ff7f0e", "white", "#1f83b4"),
+           lab = TRUE)+
+           theme(panel.grid.major=element_blank())
+```
 
 ### Question 2a
 
-Perform factor analysis
+Perform factor analysis using principal component analysis method.
+Looking at the importance of the components, the first two principal components explains 80% of the variance in the data. The proportion of the variance explained by component 3 is less than 0.2 ($1/p$) ($p$ being 5 in this case). A rule of thumb suggests retaining only those components whose variances individually are greater than $1/p$. So, we will retain only the first two principal components. 
 
 ```{r}
-fact <- factanal(x = dat,factors = 2)
+# Principal component analysis method
+dat_pc<-princomp(dat)
+summary(dat_pc, loadings = TRUE)
+```
+
+Based on the importance of the components, we have seen that first two components explains most of the variance, hence we are going to perform factor analysis using m=2 factors.
+
+```{r}
+fact_pc<-principal(dat, nfactors=2,rotate="none")
+print(fact_pc)
 ```
 
 ### Question 2b
 
-From loading matrix we can see:
-1. factor 1 explains JPMorgan in 76% of variance, Citibank in 81% of variance, wellsfargo in 66% of variance,
-2. Royaldutchshell in 11% of variance, ExxonMoboil in 10% of variance
-3. factor 2 epxlains 23% of Citibank variance, 10% of wellsfargo variance,99% of RotalDutchShell vairnace, 67% of ExxonMobil variance
+Looking at the factor loadings, all of the stocks load highly on the first factor while the second factor shows contrasting loading of banking stocks (negative low loadings) to the oil stocks (positive high loadings). It is clear that the factor $F_1$ represents general economic conditions and can be called as *Market Factor*. The second factor $F_2$ seems to differentiate stocks in different industries and can be called as *Industry Factor*.
+
+So, looking at the factor variances and loadings, it can be summarized that the weekly rates of stocks are determined by general market conditions and activities in the respective industries and some of it is explained by other/residual factors.
+
+The chart below shows the same story where all the variables load highly on the first factor and first 3 variable load negatively on second factor while the last 2 variables load positively on second factor.
 
 ```{r}
-library('psych')
-factor.plot(fact)
+factor.plot(fact_pc)
 ```
 
-Also from the loading plot, we can also see factor2 has influces more on RoyalDutchshell and ExxonMobil
-factor1 has more influences on Citibank and JPMorgan
+Let's look at the factor anlysis with rotated loadings. Here, we are using the same principal components analysis method with **varimax** rotation. We will still use two factors and looking at the loadings, we now see a different pattern. The banking stocks load heavily on the the factor 1 $F_1$ while the oil stocks load heavily on the second factor $F_2$. Factor 1 represent those economic forces that causes the bank stocks to move together while the Factor 2 represents the economic forces that affect the oil stocks. The chart confirms the above findings.
+
+```{r}
+fact_pc_rot <-principal(dat, nfactors=2,rotate="varimax")
+print(fact_pc_rot)
+factor.plot(fact_pc_rot)
+```
 
 ### Question 2c
+Table 9.8 on page 510 of Johnson and Wichern shows the unrotated and rotated factors for the same dataset obtained using the maximum likelihood method. In our previous steps we have used the principal component method for obtaining the factors. Here, we will use another method (without rotation) to calculate the factors. The unrotated factors using the maximum likelihood method shows that the oil stocks load heavily on the the factor 1 ($F_1$) while the banking stock load heavily on the second factor $F_2$. Factor 1 represent those economic forces that causes the oil stocks to move together while the Factor 2 represents the economic forces that affect the banking stocks.
 
-Compare
+```{r}
+# Maximum likelihood method
+fact_ml <- factanal(x = dat,factors = 2, rotation = 'none')
+print(fact_ml)
+```
+
+The rotated factors using the maximum likelihood method are similar to the rotated factors using the principal component method and shows that the banking stocks load heavily on the the factor 1 ($F_1$ )while the oil stock load heavily on the second factor $F_2$.
+
+```{r}
+# Maximum likelihood method with rotation
+fact_ml_rot <- factanal(x = dat,factors = 2, rotation = 'varimax')
+print(fact_ml_rot)
+```
 
 ## Question 3
 
-### Load the dataset from local storage
+### Load the dataset from local storage  
 
 ```{r}
+# Load the dataset
 egyptskull <- fread('Data/egyptskull.csv')
 
+# Descriptive statistics
 summary(egyptskull)
 
+# Convert the dependent variable to a factor
 egyptskull[, Epoch:= as.factor(Epoch)]
 ```
+
 ### Question 3a
 
-Logistics Regression
+Logistic regression is a statistical model used to describe data and to explain the relationship between one dependent binary variable and one or more nominal, ordinal, interval or ratio-level independent variables. Logistic regression is the appropriate regression analysis to conduct when the dependent variable is binary.  Like all regression analyses, the logistic regression is a predictive analysis. In statistics, the logistic model is used to model the probability of a certain class or event existing such as pass/fail, win/lose, alive/dead or healthy/sick.
 
 ### Question 3b
 
-Classification Trees
+Classification trees are used to predict membership of cases or objects into classes of a categorical dependent variable from their measurements on one or more predictor variables. Classification tree analysis has traditionally been one of the main techniques used in data mining. 
+
+It is one of the predictive modeling approaches used in statistics, data mining and machine learning. Tree models where the target variable can take a discrete set of values are called classification trees; in these tree structures, leaves represent class labels and branches represent conjunctions of features that lead to those class labels.
+
+In computer science, Decision tree learning uses a decision tree (as a predictive model) to go from observations about an item (represented in the branches) to conclusions about the item's target value (represented in the leaves).  
 
 ### Question 3c
 
 Scatter Plot
 
 ```{r}
-
 ggplot(egyptskull, aes(x=MB, y=BH, group=Epoch))+
   geom_point(aes(color=Epoch))
-
 ```
 
 
@@ -243,26 +309,25 @@ egyptskull[, Epoch_3:=ifelse(Epoch == 1850, 1, 0)]
 egyptskull[, Epoch_4:=ifelse(Epoch == 200, 1, 0)]
 egyptskull[, Epoch_5:=ifelse(Epoch == 150, 1, 0)]
 
-
 egyptskull_train <- egyptskull[,.SD[1:25], by = list(Epoch)]
 egyptskull_test <- egyptskull[,.SD[26:30], by = list(Epoch)]
 
 egyptskull_train[, .N, by = list(Epoch)]
 egyptskull_test[, .N, by = list(Epoch)]
-
 ```
 
 Perform LDA
 
 ```{r}
 #######   LDA
-
 model_lda <- lda(Epoch ~ MB+BH+BL+NH, data=egyptskull_train)
 plot(model_lda)
 
 egyptskull_test$lda_predict<-predict(model_lda,egyptskull_test[,2:5])$class
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$lda_predict)
 
+# error rate
 mean(egyptskull_test$lda_predict != egyptskull_test$Epoch)
 
 partimat(as.factor(Epoch) ~ MB+BH+BL+NH, data=egyptskull_train,method="lda")
@@ -271,15 +336,15 @@ partimat(as.factor(Epoch) ~ MB+BH+BL+NH, data=egyptskull_train,method="lda")
 Perform QDA
 
 ```{r}
-
 ######## QDA
-
 model_qda<-qda(Epoch ~ MB+BH+BL+NH, data=egyptskull_train)
 model_qda
 
 egyptskull_test$qda_predict<-predict(model_qda,egyptskull_test[,2:5])$class
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$qda_predict)
 
+# error rate
 mean(egyptskull_test$qda_predict != egyptskull_test$Epoch)
 
 partimat(as.factor(Epoch) ~ MB+BH+BL+NH, data=egyptskull_train,method="qda")
@@ -298,17 +363,17 @@ egyptskull_test$pred_mnl<-apply(predictions,1,function(i) which.max(i) )
 
 egyptskull_test[, pred_mnl:= c(4000, 3300, 1850, 200, 150)[pred_mnl]]
 egyptskull_test[, unique(Epoch)]
+#confusion matrix
 print(table(egyptskull_test$Epoch,egyptskull_test$pred_mnl))
 
+# error rate
 mean(egyptskull_test$pred_mnl != egyptskull_test$Epoch)
 ```
 
 Perform CART
 
 ```{r}
-
 ######## CART
-
 model_ct <- rpart(Epoch ~ MB+BH+BL+NH, data = egyptskull_train, method="class")
 plot(model_ct)
 text(model_ct, use.n=TRUE, all=TRUE, cex=.7)
@@ -317,8 +382,10 @@ plotcp(model_ct)
 
 egyptskull_test$pred_ct<-predict(model_ct,egyptskull_test,type="vector")
 egyptskull_test[, pred_ct:= c(4000, 3300, 1850, 200, 150)[pred_ct]]
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$pred_ct)
 
+# error rate
 mean(egyptskull_test$pred_ct != egyptskull_test$Epoch)
 
 model_ct$cptable
@@ -332,8 +399,10 @@ text(model_ct_fit, use.n=TRUE, all=TRUE, cex=.7)
 
 egyptskull_test$pred_ct_fit<-predict(model_ct_fit,egyptskull_test,type="vector")
 egyptskull_test[, pred_ct_fit:= c(4000, 3300, 1850, 200, 150)[pred_ct_fit]]
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$pred_ct_fit)
 
+# error rate
 mean(egyptskull_test$pred_ct_fit != egyptskull_test$Epoch)
 ```
 
@@ -341,37 +410,47 @@ Build a neural network
 
 ```{r}
 ##### Nnet
-
 model_nnet<-nnet(Epoch ~ MB+BH+BL+NH, data = egyptskull_train,size=5,decay=0.1)
 
 egyptskull_test$pred_nnet<-predict(model_nnet,egyptskull_test,type="class")
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$pred_nnet)
 
+# error rate
 mean(egyptskull_test$pred_nnet != egyptskull_test$Epoch)
-
 ```
 
 ### Question 3e
 
 ```{r}
 # LDA
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$lda_predict)
+# error rate
 mean(egyptskull_test$lda_predict != egyptskull_test$Epoch)
 
 # QDA
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$qda_predict)
+# error rate
 mean(egyptskull_test$qda_predict != egyptskull_test$Epoch)
 
 # Multinomial
+#confusion matrix
 print(table(egyptskull_test$Epoch,egyptskull_test$pred_mnl))
+# error rate
 mean(egyptskull_test$pred_mnl != egyptskull_test$Epoch)
 
 # CART
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$pred_ct_fit)
+# error rate
 mean(egyptskull_test$pred_ct_fit != egyptskull_test$Epoch)
 
 # Nnet
+#confusion matrix
 table(egyptskull_test$Epoch,egyptskull_test$pred_nnet)
+# error rate
 mean(egyptskull_test$pred_nnet != egyptskull_test$Epoch)
 ```
 
@@ -400,7 +479,6 @@ egyptskull_val$pred_mnl<-apply(predictions,1,function(i) which.max(i) )
 egyptskull_val[, pred_mnl:= c(4000, 3300, 1850, 200, 150)[pred_mnl]]
 ```
 
-
 ## Part B
 
 ## Question 1
@@ -427,7 +505,6 @@ dim(diabetes_orig)
 ### Question 1a
 
 ```{r}
-
 Xmatrix <- as.matrix(diabetes_orig[,1:10])
 yVector <- diabetes_orig$Y
 
@@ -436,7 +513,6 @@ dim(Xmatrix)
 cvfit <- cv.glmnet(Xmatrix , yVector)
 
 plot(cvfit)
-
 
 log(cvfit$lambda.min)
 
@@ -505,8 +581,6 @@ Not very different
 
 ### Question 2c
 
-
-
 ### Multicollinearity Analysis
 
 ```{r,dpi=300, fig.width=7, fig.height=7}
@@ -549,7 +623,7 @@ mvtest$Descriptives
 
 ### Transform to near normal
 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 trans<-powerTransform(seeds[,1:7])
 seeds_trans <- seeds[,1:7]
 seeds_trans<-bcPower(seeds_trans,trans$lambda)
@@ -558,4 +632,90 @@ mvtest_trans$multivariateNormality
 mvtest_trans$univariateNormality
 mvtest_trans$Descriptives
 ```
+### Multinomial logistic
 
+```{r}
+seeds[, wheat_type_1:=ifelse(wheat_type == 1, 1, 0)]
+seeds[, wheat_type_2:=ifelse(wheat_type == 2, 1, 0)]
+seeds[, wheat_type_3:=ifelse(wheat_type == 3, 1, 0)]
+
+seeds_train <- seeds[,.SD[1:55], by = list(wheat_type)]
+seeds_test <- seeds[,.SD[56:70], by = list(wheat_type)]
+
+seeds_train[, .N, by = list(wheat_type)]
+seeds_test[, .N, by = list(wheat_type)]
+
+
+model_mnl<-vglm(formula = cbind(wheat_type_1,wheat_type_2,wheat_type_3) ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, family = multinomial, data = seeds_train)
+summary(model_mnl)
+
+predictions<-predict(model_mnl,newdata=seeds_test[,2:8],type="response")
+seeds_test$pred_mnl<-apply(predictions,1,function(i) which.max(i) )
+
+#confusion matrix
+print(table(seeds_test$wheat_type,seeds_test$pred_mnl))
+
+# error rate
+mean(seeds_test$pred_mnl != seeds_test$wheat_type)
+
+
+seeds_trans <- cbind(seeds_trans, seeds$wheat_type)
+names(seeds_trans) <- col_names_seeds
+
+seeds_trans[, wheat_type_1:=ifelse(wheat_type == 1, 1, 0)]
+seeds_trans[, wheat_type_2:=ifelse(wheat_type == 2, 1, 0)]
+seeds_trans[, wheat_type_3:=ifelse(wheat_type == 3, 1, 0)]
+
+seeds_trans_train <- seeds_trans[,.SD[1:55], by = list(wheat_type)]
+seeds_trans_test <- seeds_trans[,.SD[56:70], by = list(wheat_type)]
+
+seeds_trans_train[, .N, by = list(wheat_type)]
+seeds_trans_test[, .N, by = list(wheat_type)]
+
+
+model_mnl_trans <-vglm(formula = cbind(wheat_type_1,wheat_type_2,wheat_type_3) ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, family = multinomial, data = seeds_trans_train)
+summary(model_mnl)
+
+predictions_trans <-predict(model_mnl_trans,newdata=seeds_trans_test[,2:8],type="response")
+seeds_trans_test$pred_mnl<-apply(predictions_trans,1,function(i) which.max(i) )
+
+#confusion matrix
+print(table(seeds_trans_test$wheat_type,seeds_trans_test$pred_mnl))
+
+# error rate
+mean(seeds_trans_test$pred_mnl != seeds_trans_test$wheat_type)
+```
+###CART
+
+```{r}
+######## CART
+model_ct <- rpart(wheat_type ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, data = seeds_train, method="class")
+plot(model_ct)
+text(model_ct, use.n=TRUE, all=TRUE, cex=.7)
+
+plotcp(model_ct)
+
+seeds_test$pred_ct<-predict(model_ct,seeds_test,type="vector")
+#confusion matrix
+table(seeds_test$wheat_type,seeds_test$pred_ct)
+
+# error rate
+mean(seeds_test$pred_ct != seeds_test$wheat_type)
+
+model_ct$cptable
+
+model_ct_fit<- prune(model_ct, cp=model_ct$cptable[which.min(model_ct$cptable[,"xerror"]),"CP"])
+
+summary(model_ct_fit)
+
+plot(model_ct_fit)
+text(model_ct_fit, use.n=TRUE, all=TRUE, cex=.7)
+
+seeds_test$pred_ct_fit<-predict(model_ct_fit,seeds_test,type="vector")
+#confusion matrix
+table(seeds_test$wheat_type,seeds_test$pred_ct_fit)
+
+# error rate
+mean(seeds_test$pred_ct_fit != seeds_test$wheat_type)
+
+```
