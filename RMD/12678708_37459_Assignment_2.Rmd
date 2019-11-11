@@ -2,11 +2,11 @@
 title: "Multivariate Data Analysis - Assignment 2"
 output:
   word_document: default
-#  pdf_document: default
+  pdf_document: default
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(dpi=300,fig.width=7)
+knitr::opts_chunk$set(dpi=300)
 
 # Install Packages
 list.of.packages <- c("data.table"
@@ -144,7 +144,6 @@ Construct the 3x3 matrix from coefficients
 ```{r}
 T <- matrix(c(1,-1*beta2_1,-1*beta3_1,0,1,-1*beta3_2,0,0,1),nrow = 3)
 print(T)
-print(round(T%*%t(T)))
 ```
 
 ### Question 1e
@@ -153,7 +152,8 @@ Compute $T\sum T^\intercal$
 
 ```{r}
 TT <- T%*%vcmat%*%t(T)
-print(TT)
+
+print(T)
 ```
 
 ### Question 1f
@@ -164,24 +164,26 @@ where $D$ is a 3x3 diagonal matrix, with entries on the main diagonal as ${\sigm
 To make $S^{-1}$ as close to $\sum^{-1}$ possible, let us assume:
 
 $${\sum}^{-1} = T^\intercal D^{-1} T$$
-Based on that we can calculate the value of ${\sigma_1^2}$ as: 
-$${\sigma_1^2} = {{\sum}_{11}}^{-1} - (({T}_{21}^2 * {\sigma_2^2}) + ({T}_{31}^2 * {\sigma_3^2}))$$
+Based on that we can calculate the value of $D$ as: 
+
+$$D =  {(T {\sum}^{-1} T^\intercal)}^{-1}$$
 
 ```{r}
+# Calculate the inverse of covariance matrix
 vcmat_inv <- solve(vcmat)
 round(vcmat_inv)
+# Sigma square can be derived from estimated D
+sigma_1_square <- solve(T%*%vcmat_inv%*%t(T))[1,1]
 
-y <- vcmat_inv[1,1] 
-sigma_1_square <-y-(T[2,1]^2*sigma_2_square+ T[3,1]*sigma_3_square)
-
-sigma_1_square <-y-(sigma_2_square+ sigma_3_square)
-
+# Calculate D
 D = matrix(c(sigma_1_square, 0, 0, 0, sigma_2_square, 0, 0, 0, sigma_3_square),nrow = 3)
 print(D)
 
-print(round(vcmat_inv, 2))
+# Compute S inverse
 print(round(t(T)%*%solve(D)%*%T))
 
+#Compare with inverse of covariance matrix
+print(round(vcmat_inv))
 ```
 
 ## Question 2
@@ -265,6 +267,18 @@ print(fact_ml_rot)
 
 ### Load the dataset from local storage  
 
+Data Descriptions:
+Four measurements of male Egyptian skulls from 5 different time periods. Thirty skulls are measured from each time period.  
+Number of observations: 150  
+Variable Names:  
+
+* MB: Maximal Breadth of Skull
+* BH: Basibregmatic Height of Skull
+* BL: Basialveolar Length of Skull
+* NH: Nasal Height of Skull
+* Year: Approximate Year of Skull Formation (negative = B.C., positive = A.D.)  
+
+
 ```{r}
 # Load the dataset
 egyptskull <- fread('Data/egyptskull.csv')
@@ -290,10 +304,11 @@ In computer science, Decision tree learning uses a decision tree (as a predictiv
 
 ### Question 3c
 
-Scatter Plot
+Scatter Plot of Maximal Breadth of Skull with the Nasal Height of Skull.  
+The scatter plot shows no clear linear relationship and does not have any patterns across different Epochs.  
 
 ```{r}
-ggplot(egyptskull, aes(x=MB, y=BH, group=Epoch))+
+ggplot(egyptskull, aes(x=MB, y=NH, group=Epoch))+
   geom_point(aes(color=Epoch))
 ```
 
@@ -316,7 +331,9 @@ egyptskull_train[, .N, by = list(Epoch)]
 egyptskull_test[, .N, by = list(Epoch)]
 ```
 
-Perform LDA
+**Perform LDA**
+
+Looking at the chart, we can see few misclassifications on the training set. The error rate is high being over 70% on training set.
 
 ```{r}
 #######   LDA
@@ -324,16 +341,13 @@ model_lda <- lda(Epoch ~ MB+BH+BL+NH, data=egyptskull_train)
 plot(model_lda)
 
 egyptskull_test$lda_predict<-predict(model_lda,egyptskull_test[,2:5])$class
-#confusion matrix
-table(egyptskull_test$Epoch,egyptskull_test$lda_predict)
-
-# error rate
-mean(egyptskull_test$lda_predict != egyptskull_test$Epoch)
 
 partimat(as.factor(Epoch) ~ MB+BH+BL+NH, data=egyptskull_train,method="lda")
 ```
 
-Perform QDA
+**Perform QDA**
+
+Looking at the chart, we can see fewer misclassifications on the training set than LDA. The error rate is high being over 65% on training set but better than LDA
 
 ```{r}
 ######## QDA
@@ -341,20 +355,16 @@ model_qda<-qda(Epoch ~ MB+BH+BL+NH, data=egyptskull_train)
 model_qda
 
 egyptskull_test$qda_predict<-predict(model_qda,egyptskull_test[,2:5])$class
-#confusion matrix
-table(egyptskull_test$Epoch,egyptskull_test$qda_predict)
-
-# error rate
-mean(egyptskull_test$qda_predict != egyptskull_test$Epoch)
 
 partimat(as.factor(Epoch) ~ MB+BH+BL+NH, data=egyptskull_train,method="qda")
 ```
 
-Perform Multinomial Logistic 
+**Perform Multinomial Logistic**  
+
+Looking at the variable importance, none of the variable explain the variance in Epoch except for BL (Basialveolar Length of Skull). Even that explains only one class.  
 
 ```{r}
 ######  Multinomial Logistic 
-
 model_mnl<-vglm(formula = cbind(Epoch_1,Epoch_2,Epoch_3,Epoch_4,Epoch_5) ~ MB+BH+BL+NH, family = multinomial, data = egyptskull_train)
 summary(model_mnl)
 
@@ -362,17 +372,22 @@ predictions<-predict(model_mnl,newdata=egyptskull_test[,2:5],type="response")
 egyptskull_test$pred_mnl<-apply(predictions,1,function(i) which.max(i) )
 
 egyptskull_test[, pred_mnl:= c(4000, 3300, 1850, 200, 150)[pred_mnl]]
-egyptskull_test[, unique(Epoch)]
-#confusion matrix
-print(table(egyptskull_test$Epoch,egyptskull_test$pred_mnl))
-
-# error rate
-mean(egyptskull_test$pred_mnl != egyptskull_test$Epoch)
 ```
 
-Perform CART
+**Perform CART**  
 
-```{r}
+The algorithm of the decision tree models works by repeatedly partitioning the data into multiple sub-spaces, so that the outcomes in each final sub-space is as homogeneous as possible. This approach is technically called recursive partitioning. The produced result consists of a set of rules used for predicting the outcome variable, which can be either:  
+
+* a continuous variable, for regression trees
+* a categorical variable, for classification trees  
+
+The decision rules generated by the CART (Classification & Regression Trees) predictive model are generally visualized as a binary tree. 
+
+The model's lowest error rate is 0.68 after 7 spilts.
+
+Even after tuning the 'cp' parameter that is pruning the tree at the lowest error rate, the model performance does not improve.  
+
+```{r,dpi=300, fig.width=15, fig.height=15}
 ######## CART
 model_ct <- rpart(Epoch ~ MB+BH+BL+NH, data = egyptskull_train, method="class")
 plot(model_ct)
@@ -382,11 +397,6 @@ plotcp(model_ct)
 
 egyptskull_test$pred_ct<-predict(model_ct,egyptskull_test,type="vector")
 egyptskull_test[, pred_ct:= c(4000, 3300, 1850, 200, 150)[pred_ct]]
-#confusion matrix
-table(egyptskull_test$Epoch,egyptskull_test$pred_ct)
-
-# error rate
-mean(egyptskull_test$pred_ct != egyptskull_test$Epoch)
 
 model_ct$cptable
 
@@ -397,30 +407,25 @@ summary(model_ct_fit)
 plot(model_ct_fit)
 text(model_ct_fit, use.n=TRUE, all=TRUE, cex=.7)
 
+plotcp(model_ct_fit)
 egyptskull_test$pred_ct_fit<-predict(model_ct_fit,egyptskull_test,type="vector")
 egyptskull_test[, pred_ct_fit:= c(4000, 3300, 1850, 200, 150)[pred_ct_fit]]
-#confusion matrix
-table(egyptskull_test$Epoch,egyptskull_test$pred_ct_fit)
-
-# error rate
-mean(egyptskull_test$pred_ct_fit != egyptskull_test$Epoch)
 ```
 
-Build a neural network
+**Build a neural network**  
+
+Building the network with 5 hidden layers. Adjusting the hidden layers to a lower or a higher number does not lower the error rate on the test set.
 
 ```{r}
 ##### Nnet
 model_nnet<-nnet(Epoch ~ MB+BH+BL+NH, data = egyptskull_train,size=5,decay=0.1)
-
+summary(model_nnet)
 egyptskull_test$pred_nnet<-predict(model_nnet,egyptskull_test,type="class")
-#confusion matrix
-table(egyptskull_test$Epoch,egyptskull_test$pred_nnet)
-
-# error rate
-mean(egyptskull_test$pred_nnet != egyptskull_test$Epoch)
 ```
 
 ### Question 3e
+
+Multinomial Logistic Regression error rate on the test set is the least. Confusion matrix shows the least amount of misclassifications in Multinomial Logistic Regression. Hence, the best fit model is Multinomial Logistic Regression.  
 
 ```{r}
 # LDA
@@ -456,6 +461,8 @@ mean(egyptskull_test$pred_nnet != egyptskull_test$Epoch)
 
 ### Question 3f
 
+The lowest error rate on the test set is using the Multinomial Logistic Regression. The error rate is .6. So, we are going to use this model for new predictions.
+
 ```{r}
 ####### Predict
 egyptskull_val <- data.table(rbind(c(128, 143, 103, 50) 
@@ -477,6 +484,7 @@ predictions<-predict(model_mnl,newdata=egyptskull_val,type="response")
 egyptskull_val$pred_mnl<-apply(predictions,1,function(i) which.max(i) )
 
 egyptskull_val[, pred_mnl:= c(4000, 3300, 1850, 200, 150)[pred_mnl]]
+print(egyptskull_val)
 ```
 
 ## Part B
@@ -504,33 +512,103 @@ dim(diabetes_orig)
 
 ### Question 1a
 
+**Least Absolute Shrinkage and Selection Operator**  
+
+Using k-fold cross validation to find the optimal value of lamda.  
+lambda.min is the ideal choice for lambda for getting the best fit for LASSO.  
+A rule of thumb is to use lamba.1se for the optimal fit for LASSO
+
 ```{r}
 Xmatrix <- as.matrix(diabetes_orig[,1:10])
 yVector <- diabetes_orig$Y
-
-dim(Xmatrix)
 
 cvfit <- cv.glmnet(Xmatrix , yVector)
 
 plot(cvfit)
 
-log(cvfit$lambda.min)
-
+cvfit$lambda.min
 coef(cvfit, s = "lambda.min")
 
-log(cvfit$lambda.1se)
+cvfit$lambda.1se
 coef(cvfit, s = "lambda.1se")
+```
 
-LASSOfit <- glmnet(Xmatrix , yVector)
-summary(LASSOfit)
-LASSOfit$lambda
+Trying out different values of lamda.  
+lambda = 1  
+Calculating the beta coefficients and r-square  
 
-betaHat <- as.numeric(LASSOfit$beta)
+```{r}
+LASSOfit_1 <- glmnet(Xmatrix , yVector , lambda=1)
+coef(LASSOfit_1)
+betaHat_1 <- as.numeric(LASSOfit_1$beta)
+betaHat_1
+y <- yVector
+y_hat_cv <- predict(LASSOfit_1, Xmatrix)
+rsq_lasso_cv <- cor(y, y_hat_cv)^2
+rsq_lasso_cv
+LASSOfit_1$dev.ratio
+```
+lambda = 2  
+Calculating the beta coefficients and r-square  
 
-LASSOfit <- glmnet(Xmatrix , yVector , lambda=1.2)
-summary(LASSOfit)
-betaHat <- as.numeric(LASSOfit$beta)
+```{r}
+LASSOfit_2 <- glmnet(Xmatrix , yVector , lambda=2)
+coef(LASSOfit_2)
+betaHat_2 <- as.numeric(LASSOfit_2$beta)
+betaHat_2
+y <- yVector
+y_hat_cv <- predict(LASSOfit_2, Xmatrix)
+rsq_lasso_cv <- cor(y, y_hat_cv)^2
+rsq_lasso_cv
+LASSOfit_2$dev.ratio
+```
+lambda = 4  
+Calculating the beta coefficients and r-square  
 
+```{r}
+LASSOfit_4 <- glmnet(Xmatrix , yVector , lambda=2)
+coef(LASSOfit_4)
+betaHat_4 <- as.numeric(LASSOfit_4$beta)
+betaHat_4
+y <- yVector
+y_hat_cv <- predict(LASSOfit_4, Xmatrix)
+rsq_lasso_cv <- cor(y, y_hat_cv)^2
+rsq_lasso_cv
+LASSOfit_4$dev.ratio
+```
+lambda = 0.5  
+Calculating the beta coefficients and r-square  
+
+```{r}
+LASSOfit_0.5 <- glmnet(Xmatrix , yVector , lambda=0.5)
+coef(LASSOfit_0.5)
+betaHat_0.5 <- as.numeric(LASSOfit_0.5$beta)
+betaHat_0.5
+y <- yVector
+y_hat_cv <- predict(LASSOfit_0.5, Xmatrix)
+rsq_lasso_cv <- cor(y, y_hat_cv)^2
+rsq_lasso_cv
+LASSOfit_0.5$dev.ratio
+```
+lambda = 0.05  
+Calculating the beta coefficients and r-square  
+
+```{r}
+LASSOfit_0.05 <- glmnet(Xmatrix , yVector , lambda=0.05)
+coef(LASSOfit_0.05)
+betaHat_0.05 <- as.numeric(LASSOfit_0.05$beta)
+betaHat_0.05
+y <- yVector
+y_hat_cv <- predict(LASSOfit_0.05, Xmatrix)
+rsq_lasso_cv <- cor(y, y_hat_cv)^2
+rsq_lasso_cv
+LASSOfit_0.05$dev.ratio
+```
+
+Calculating the max r-square from the k-fold cross validation.  
+lambda.min comes out to be the ideal choice which yeilds the maximum r-squared  
+
+```{r}
 rsq <- 1 - cvfit$cvm/var(yVector)
 
 plot(cvfit$lambda,rsq)
@@ -538,27 +616,47 @@ plot(cvfit$lambda,rsq)
 lambda_rsq <- data.table(cbind(lambda=cvfit$lambda,rsq))
 
 lambda_rsq[rsq==max(rsq)]
-
-LASSOfit <- glmnet(Xmatrix , yVector , lambda=1)
-betaHat <- as.numeric(LASSOfit$beta)
-
 ```
 
-r-squared 49.93
-better fit
-similar co-oefficents
-automated way of finding co-efficents
+lambda = 0.0735996  
+Calculating the beta coefficients and r-square  
 
+```{r}
+LASSOfit_0.07 <- glmnet(Xmatrix , yVector , lambda=0.0735996)
+coef(LASSOfit_0.07)
+betaHat_0.07 <- as.numeric(LASSOfit_0.07$beta)
+betaHat_0.07
+y <- yVector
+y_hat_cv <- predict(LASSOfit_0.07, Xmatrix)
+rsq_lasso_cv <- cor(y, y_hat_cv)^2
+rsq_lasso_cv
+LASSOfit_0.07$dev.ratio
+```
+
+### Question 1b
+
+With the higher values of lambda, we are getting lesser variables that explain most of the variance in the disease progression (dependent variable). However, the r-squared gets lower with the lesser variables. The best r-square is achieved at lambda = 0.0735996 and includes almost all the variables that explain most of the variance. It should be noted that the key variables are still the same as found through manual experiments of trying linear regressions with different combinations of the variable. At lambda = 0.0735996, the most significant variable is S5, followed by SEX, BMI, S4 and BP. The remaining variables explains very little of the variance in the disease progression (dependent variable). 
+
+### Question 1c
+
+Variable significance from LASSO model is similar to the ones obtained from multiple linear regression. However, comparing the beta coefficients from LASSO model with the coefficients from multiple linear regression, the coefficients from LASSO model are slightly higher than obtained from multiple linear regression. The r-squared from LASSO model is slightly higher at 0.5174173 as compared to 0.5062 from multiple linear regression. In a way, LASSO model is better as it presents a similar fit and provides an automated way of finding beta co-efficents whereas multiple linear regression requires manual trial and error experiments.
+
+```{r}
+diabetes_orig[, SEX:=as.factor(SEX)]
+model <- lm(Y~S2+S4+BMI+BP+S5+SEX, data = diabetes_orig)
+summary(model)
+```
 
 ## Question 2
 
 ### Load the dataset
-Seeds dataset contains data about four varities wheat capturing the hedonic characteristics of each variety of wheat.
+Seeds dataset contains data about four varieties of wheat capturing the hedonic characteristics of each variety of wheat. The  data  of  wheat  seeds  is  gathered  from  UCI website  which  is  a  great  dataset  repository.  The numbers  of  samples  of  wheat seeds  are  210  from three wheat classes Kama, Rosa  and Canadian are collected for classification process. Seven geometrical or morphological features of seeds are considered on the  basis  of  which  seeds  are  classified  into  three classes of wheat. 
 
 ```{r}
 seeds <- fread('Data/seeds_dataset.txt', sep = "\t")
 col_names_seeds <- c("area", "perimeter", "compactness", "length_of_kernel", "width_of_kernel", "asymmetry_coefficient", "length_of_kernel_groove", "wheat_type")
 names(seeds) <- col_names_seeds
+dim(seeds)
 ```
 
 ### Question 2a
@@ -569,6 +667,7 @@ $$Q = \frac {1}{n-1} \sum_{i=1}^n (x_i-\overline x)(x_i-\overline x)^T $$
 
 ```{r}
 seeds_vcmat <- cov(seeds[,1:7])
+print(seeds_vcmat)
 ```
 
 ### Question 2b
@@ -577,16 +676,63 @@ Another method is maximum likelihood estimate:
 
 $$Q = \frac {1}{n} \sum_{i=1}^n (x_i-\overline x)(x_i-\overline x)^T $$
 
-Not very different
+Simple cases, where observations are complete, can be dealt with by using the sample covariance matrix. The sample covariance matrix (SCM) is an unbiased and efficient estimator of the covariance matrix. If the random variable has normal distribution, the sample covariance matrix has Wishart distribution and a slightly differently scaled version of it is the maximum likelihood estimate.  
+
+If the sample size $n$ is small and the number of considered variables $p$ is large, the above empirical estimators of covariance and correlation are very unstable. Specifically, it is possible to furnish estimators that improve considerably upon the maximum likelihood estimate in terms of mean squared error. As an alternative, many methods have been suggested to improve the estimation of the covariance matrix. All of these approaches rely on the concept of shrinkage. This is implicit in Bayesian methods and in penalized maximum likelihood methods and explicit in the Stein-type shrinkage approach.
 
 ### Question 2c
 
-### Multicollinearity Analysis
+i.) A zero entry in the precision matrix (the inverse of the covariance matrix) means the corresponding variables are independent given all the other variables. Finding the covariance matrix that fits the data and has a conveniently large number of zero entries in it's inverse matrix is known as Covariance Selection. Zeros in the inverse covariance matrix are desirable both for computational and conceptual reasons: they indicate conditional independence between variables, making the model smaller. Conditional independence constraints describe the sparsity pattern of the inverse covariance matrix $\sum^{-1}$, zeros showing the conditional independence between variables. So, will choose the maximum likelihood estimate method. Maximizing the log-likelihood with respect to $\sum^{-1}$ leads to the maximum likelihood estimate $\hat{\sum}^{-1} = S^{-1}$ which isn’t usually sparse (here S is the sample covariance obtained from the data). Also when $p > n$, $S$ will be singular and so the maximum likelihood estimate cannot be computed.
+
+ii.) This is the similar case which we had in Part A Q1 (f) where two of the off-diagnol entries in the inverse of the covariance matrix are zero and we calculated $S^{-1}$ to be as close to $\sum^{-1}$
+
+
+## Question 3
+
+**Research Question**  
+
+To build a multiclass classifier for automatically classifying different varieties of seeds into 3 classes of wheat. Manual apporach uses various geometrical or morphological features of seeds to identify the variety of wheat. Mathematical algorithms can be utilized to perform a qualitative research. Investigation will require data collection and analysis, and the methodology for this will include experimenting with 4 different mathematical methods for building a classifier.
+
+**Required Dataset**
+
+Seeds dataset contains data about 3 varieties of wheat capturing the hedonic characteristics of each variety of wheat. The numbers  of  samples  of  wheat seeds  are  210  from three wheat classes Kama, Rosa  and Canadian are collected for classification process. Seven geometrical or morphological features of seeds are considered on the  basis  of  which  seeds  can be classified  into  three classes of wheat. 
+
+**Data Acquisition**  
+The dataset has been gathered from UCI Machine Learning Repository: 
+
+http://archive.ics.uci.edu/ml/datasets/seeds
+
+
+**Research Objective**  
+
+To build a multiclass classifier for classifying the seven geometrical or morphological features of seeds into 3 classes of wheat.  
+
+Machine Learning is widely used in the field of agriculture for differentiating the varieties of various crops and for identifying their quality as well. 
+
+A  machine  vision  system  is  an  alternate  to  the manual inspection, in the field of biological sciences to analyze biological products. To classify the varieties of various food crops and for identifying their quality as well, the machine vision is broadly used in the field of agriculture. Machine algorithms can be used to identify different  varieties  of  wheat  seeds  to  classify  them according to their quality.  
+
+In biology and agronomy crop seed characteristics are very significant aspects. Machine vision technology is  developed  to  quantify  the features,  the  quality precise examination and graduation of the crop seeds. A novel scheme is presented to  extract and quantify some of features having worth biologically.
+
+**Methodology**  
+
+The dataset has been gathered from UCI Machine Learning Repository. Data will be analysed for descriptive statistics, pre-processing and analyzing the univariate and multivariate distribution. The data will be checked to understand the linear relationship among various variables. Four different classification techniques will be used to fit a model with the best performance. LDA, QDA, Multinomial Logistic regression and CART Decision tress. The dataset will be split into training and test datasets which will be used to train the models and test the prediction performance of each of the models. The model performance will be compared to answer our research question of building an optimal classifier for classfying the 3 varieties of wheat.
+
+**Descriptive Statistics**  
+
+No missing observations identified in the dataset. The data has 210 observation with 7 features (independent variable) and 1 class of seeds variabe (dependent variable).
+
+```{r}
+summary(seeds)
+dim(seeds)
+```
+
+**Multicollinearity Analysis**
+
+The visualization shows that the independent variables are highly correlated with each other which may pose some complexities in building the models. 'asymmetry_coefficient' is the only variable that is correlated with the dependent variable 'wheat_type'. From the chart, it is concluded that there is high linear relationship among independent variables.
 
 ```{r,dpi=300, fig.width=7, fig.height=7}
 #Corr Plot
-cor_mat <- seeds[,1:7]
-corr <- cor(cor_mat, use = "pairwise.complete.obs")
+corr <- cor(seeds, use = "pairwise.complete.obs")
 
 ggcorrplot(corr, hc.order = FALSE, type = "lower",
            ggtheme = ggthemes::theme_gdocs,
@@ -594,24 +740,68 @@ ggcorrplot(corr, hc.order = FALSE, type = "lower",
            lab = TRUE)+
            theme(panel.grid.major=element_blank())
 ```
-High linear relationship among variables
 
-### Univariate Analysis
+**Univariate Analysis**  
 
-Shapiro Wilk test rejects the null hypothesis of sample seeds$area being univariate normal.
+Shapiro Wilk test rejects the null hypothesis all variables being univariate normal. Hence, none of the variables are normally distributed.
 
 ```{r}
+
+options(scipen = 999)
 # Normal Q-Q plot for area
 qqnorm(seeds$area, sub = colnames(seeds)[1])
 ggplot(seeds, aes(x=area)) + geom_density()
 
-# Shapiro Wilk test for variable x2
+# Shapiro Wilk test for variable area
 shapiro.test(seeds$area)
 
+# Normal Q-Q plot for perimeter
+qqnorm(seeds$perimeter, sub = colnames(seeds)[2])
+ggplot(seeds, aes(x=perimeter)) + geom_density()
+
+# Shapiro Wilk test for variable perimeter
+shapiro.test(seeds$perimeter)
+
+# Normal Q-Q plot for compactness
+qqnorm(seeds$compactness, sub = colnames(seeds)[3])
+ggplot(seeds, aes(x=compactness)) + geom_density()
+
+# Shapiro Wilk test for variable compactness
+shapiro.test(seeds$compactness)
+
+# Normal Q-Q plot for length_of_kernel
+qqnorm(seeds$length_of_kernel, sub = colnames(seeds)[4])
+ggplot(seeds, aes(x=length_of_kernel)) + geom_density()
+
+# Shapiro Wilk test for variable length_of_kernel
+shapiro.test(seeds$length_of_kernel)
+
+# Normal Q-Q plot for width_of_kernel
+qqnorm(seeds$width_of_kernel, sub = colnames(seeds)[5])
+ggplot(seeds, aes(x=width_of_kernel)) + geom_density()
+
+# Shapiro Wilk test for variable width_of_kernel
+shapiro.test(seeds$width_of_kernel)
+
+# Normal Q-Q plot for asymmetry_coefficient
+qqnorm(seeds$asymmetry_coefficient, sub = colnames(seeds)[6])
+ggplot(seeds, aes(x=asymmetry_coefficient)) + geom_density()
+
+# Shapiro Wilk test for variable asymmetry_coefficient
+shapiro.test(seeds$asymmetry_coefficient)
+
+# Normal Q-Q plot for length_of_kernel_groove
+qqnorm(seeds$length_of_kernel_groove, sub = colnames(seeds)[7])
+ggplot(seeds, aes(x=length_of_kernel_groove)) + geom_density()
+
+# Shapiro Wilk test for variable length_of_kernel_groove
+shapiro.test(seeds$length_of_kernel_groove)
 ```
 
 
-### Multivariate Normality test
+**Multivariate Normality test**
+
+The data is not multivariate normal as per the royston test.
 
 ```{r}
 mvtest <- mvn(seeds[,1:7], mvnTest='royston', multivariatePlot='qq')
@@ -632,9 +822,15 @@ mvtest_trans$multivariateNormality
 mvtest_trans$univariateNormality
 mvtest_trans$Descriptives
 ```
-### Multinomial logistic
+
+**Data Preprocessing**  
+
+Split the dataset in to train and test datasets. For multionomial regression, we need to create 3 different response variables to denote the three levels of wheat categories.  
 
 ```{r}
+# Convert the dependent variable to a factor
+seeds[, wheat_type:= as.factor(wheat_type)]
+
 seeds[, wheat_type_1:=ifelse(wheat_type == 1, 1, 0)]
 seeds[, wheat_type_2:=ifelse(wheat_type == 2, 1, 0)]
 seeds[, wheat_type_3:=ifelse(wheat_type == 3, 1, 0)]
@@ -644,8 +840,54 @@ seeds_test <- seeds[,.SD[56:70], by = list(wheat_type)]
 
 seeds_train[, .N, by = list(wheat_type)]
 seeds_test[, .N, by = list(wheat_type)]
+```
 
+**LDA**  
+Performing a Linear discriminant analysis on the dataset.
+Looking at the chart, we can see very few misclassifications on the test set. The error rate is quite low being 18% on the test set, which is very good.
 
+```{r,dpi=300, fig.width=15, fig.height=15}
+#######   LDA
+model_lda <- lda(wheat_type ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, data=seeds_train)
+plot(model_lda)
+
+seeds_test$lda_predict<-predict(model_lda,seeds_test[,2:8])$class
+
+partimat(as.factor(wheat_type) ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, data=seeds_train,method="lda")
+
+# LDA
+#confusion matrix
+table(seeds_test$wheat_type,seeds_test$lda_predict)
+# error rate
+mean(seeds_test$lda_predict != seeds_test$wheat_type)
+```
+
+**QDA**  
+
+Performing a Quadratic discriminant analysis on the dataset.
+Looking at the chart, we can see more misclassifications on the test set than LDA. The error rate is higher being 27% on the test set. Linear discrimination works better on this dataset than quadratic in separating the 3 classes of wheat.  
+
+```{r,dpi=300, fig.width=15, fig.height=15}
+######## QDA
+model_qda<-qda(wheat_type ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, data=seeds_train)
+model_qda
+
+seeds_test$qda_predict<-predict(model_qda,seeds_test[,2:8])$class
+
+partimat(wheat_type ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, data=seeds_train, method="qda")
+
+# QDA
+#confusion matrix
+table(seeds_test$wheat_type,seeds_test$qda_predict)
+# error rate
+mean(seeds_test$qda_predict != seeds_test$wheat_type)
+```
+
+**Multinomial logistic**  
+
+Residual deviance of the model is low which indicates a good fit. The error rate is 0.13 on the test dataset, which is the best so far.
+
+```{r warning=FALSE, message=FALSE}
 model_mnl<-vglm(formula = cbind(wheat_type_1,wheat_type_2,wheat_type_3) ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, family = multinomial, data = seeds_train)
 summary(model_mnl)
 
@@ -657,37 +899,13 @@ print(table(seeds_test$wheat_type,seeds_test$pred_mnl))
 
 # error rate
 mean(seeds_test$pred_mnl != seeds_test$wheat_type)
-
-
-seeds_trans <- cbind(seeds_trans, seeds$wheat_type)
-names(seeds_trans) <- col_names_seeds
-
-seeds_trans[, wheat_type_1:=ifelse(wheat_type == 1, 1, 0)]
-seeds_trans[, wheat_type_2:=ifelse(wheat_type == 2, 1, 0)]
-seeds_trans[, wheat_type_3:=ifelse(wheat_type == 3, 1, 0)]
-
-seeds_trans_train <- seeds_trans[,.SD[1:55], by = list(wheat_type)]
-seeds_trans_test <- seeds_trans[,.SD[56:70], by = list(wheat_type)]
-
-seeds_trans_train[, .N, by = list(wheat_type)]
-seeds_trans_test[, .N, by = list(wheat_type)]
-
-
-model_mnl_trans <-vglm(formula = cbind(wheat_type_1,wheat_type_2,wheat_type_3) ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, family = multinomial, data = seeds_trans_train)
-summary(model_mnl)
-
-predictions_trans <-predict(model_mnl_trans,newdata=seeds_trans_test[,2:8],type="response")
-seeds_trans_test$pred_mnl<-apply(predictions_trans,1,function(i) which.max(i) )
-
-#confusion matrix
-print(table(seeds_trans_test$wheat_type,seeds_trans_test$pred_mnl))
-
-# error rate
-mean(seeds_trans_test$pred_mnl != seeds_trans_test$wheat_type)
 ```
-###CART
 
-```{r}
+**CART**  
+
+The model's lowest error rate is 0.06363636 after 2 spilts but the error rate on the test set is 0.22. The model seems to be overfitting.
+
+```{r,dpi=300, fig.width=15, fig.height=15}
 ######## CART
 model_ct <- rpart(wheat_type ~ area+perimeter+compactness+length_of_kernel+width_of_kernel+asymmetry_coefficient+length_of_kernel_groove, data = seeds_train, method="class")
 plot(model_ct)
@@ -701,21 +919,9 @@ table(seeds_test$wheat_type,seeds_test$pred_ct)
 
 # error rate
 mean(seeds_test$pred_ct != seeds_test$wheat_type)
-
-model_ct$cptable
-
-model_ct_fit<- prune(model_ct, cp=model_ct$cptable[which.min(model_ct$cptable[,"xerror"]),"CP"])
-
-summary(model_ct_fit)
-
-plot(model_ct_fit)
-text(model_ct_fit, use.n=TRUE, all=TRUE, cex=.7)
-
-seeds_test$pred_ct_fit<-predict(model_ct_fit,seeds_test,type="vector")
-#confusion matrix
-table(seeds_test$wheat_type,seeds_test$pred_ct_fit)
-
-# error rate
-mean(seeds_test$pred_ct_fit != seeds_test$wheat_type)
-
 ```
+
+
+**Conclusion**
+
+Based on the model's perfomance of all four models, the Multinomial logistic regression model is the best fitting model and is the recommend classifier for the research question. The seven geometrical or morphological features are apt for classifying the variety of wheat. It is recommend that at least these seven geometrical or morphological features be collected for classifying the variety of seeds. Further research can be done by analyzing more environmental factor that can impact the geometrical or morphological features of the seeds. For example, taking the seeds samples from different feilds and harvested using different methods. Capturing the enivromental and harvesting methods data and analysing it for classification may yeild in better classification models and generalizing the techniques over the population.
